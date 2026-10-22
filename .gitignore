@@ -1,0 +1,6 @@
+node_modules/
+dist/
+.tavern-entry.mjs
+*.log
+.DS_Store
+.tmp-*.txt

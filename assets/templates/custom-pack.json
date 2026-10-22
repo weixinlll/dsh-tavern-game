@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "kind": "dsh-battle-pack",
+  "id": "my-fantasy",
+  "name": "我的仙侠玩法",
+  "basePack": "fantasy",
+  "description": "修改名称和人物后导入。机制和威力由本地平衡。",
+  "party": [
+    {
+      "name": "行者",
+      "gender": "male",
+      "hp": 120,
+      "maxHp": 160,
+      "attack": 20,
+      "defense": 6,
+      "speed": 50,
+      "skills": [
+        {
+          "name": "炎指",
+          "description": "以火焰攻击并灼烧目标"
+        },
+        {
+          "name": "雷击",
+          "description": "雷电攻击，有机会麻痹"
+        },
+        {
+          "name": "护体",
+          "description": "生成护盾"
+        }
+      ]
+    }
+  ],
+  "opponents": [
+    {
+      "name": "守山人",
+      "gender": "female",
+      "hp": 160,
+      "maxHp": 160,
+      "attack": 20,
+      "defense": 6,
+      "speed": 48,
+      "skills": [
+        "挥剑",
+        "护盾"
+      ]
+    }
+  ],
+  "skillAliases": [],
+  "items": [
+    {
+      "id": "healing-potion",
+      "count": 1
+    }
+  ]
+}

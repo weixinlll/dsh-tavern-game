@@ -1,0 +1,139 @@
+{
+  "mode": "Luna image-generation agents; one independent original atlas per character",
+  "base": "Production 2D RPG animation sprite atlas, 2048x2048 square PNG with REAL transparent alpha. STRICT regular FOUR columns x FOUR rows, exactly SIXTEEN equal square cells, ONE full body of the SAME adult in EACH cell. No background, floor, shadow blobs, labels, grid lines, text or extra people. Polished crisp anime game illustration, refined mature face, natural anatomy, rich readable costume. Consistent identical character and outfit across sixteen poses, all facing screen RIGHT in three-quarter profile. Head, feet and weapon fully inside own cell with 8% padding, no overlap of neighboring cells. Body height about77% of cell, foot baseline90% cellheight. Weapon connected to hand, no large detached particles. Row1 lefttoright:0 neutral resting with weapon down;1 subtle breathing variant;2 subtle alert variant;3 battle-ready knees bent. Row2:4 windup;5 decisive attack fully extended right;6 sweeping strong attack different stance;7 recovery to ready. Row3:8 concentrate spell near chest;9 release small magic/ranged attack right;10 defensive crouch block;11 hit recoil holding torso. Row4:12 dodge low lean;13 defeated kneeling head bowed fullbody;14 victory raised hand/weapon;15 composed victory. Sixteen expressive coherent complete poses SAME EXACT character, actual transparency.",
+  "animalBase": "Production 2D RPG creature animation atlas, transparent 2048x2048 PNG, exact four columns by four rows with one identical creature per cell, same species, markings, proportions and anatomy in every frame. No environment, ground shadow, labels, grid or detached magic. Each creature's wings, tails, fins, whiskers, horns, feathers and all limbs stay fully inside its own cell; transparent gutters separate all poses. Face screen right in three-quarter profile. Row1: 0 calm neutral idle; 1 tail/feather breathing shift; 2 alert head turn; 3 battle-ready crouch. Row2: 4 attack windup; 5 lunge/bite/claw strike; 6 leaping or sweeping attack; 7 recovery. Row3: 8 gather magical energy; 9 short breath/ranged attack with contained effect; 10 defensive brace; 11 hit recoil. Row4: 12 dodge; 13 defeated but intact pose; 14 proud victory stance or roar; 15 calm composed idle. The silhouette must remain recognizable at small screen size. Keep a single connected silhouette where possible; no rider unless the specific design says so.",
+  "characters": [
+    {
+      "id": "jade-swordsman",
+      "name": "青岚剑客",
+      "gender": "male",
+      "design": "Adult Chinese male28, lean athletic, long black hair halftied high, jade-green and ivory wuxia robes with short split hems over charcoal trousers and boots, dark belt jade clasp, elegant masculine face, short straight Chinese sword right hand. No trailing ribbons."
+    },
+    {
+      "id": "crimson-duelist",
+      "name": "赤羽女武者",
+      "gender": "female",
+      "design": "Adult Chinese female27, athletic confident, auburn high ponytail, crimson armored jacket gold trim, black fitted trousers and leather boots, practical fully clothed, determined mature face, curved short saber right hand."
+    },
+    {
+      "id": "frost-mage",
+      "name": "霜银女法师",
+      "gender": "female",
+      "design": "Adult female30, silver shoulder-length hair, royal-blue fitted longcoat split at knees over white trousers, darkblue boots, silver geometric trim, calm mature face, short crystal wand right hand cyan tip, no large hat or sprawling robe."
+    },
+    {
+      "id": "iron-guardian",
+      "name": "玄甲卫士",
+      "gender": "male",
+      "design": "Adult male35, broad athletic build, short dark hair, rugged handsome face without helmet, graphite plate cuirass and shoulder armor bronze trim, navy undersuit armored boots, small red belt sash. Compact armored gauntlets and fists, no shield or spear, strong planted silhouette."
+    },
+    {
+      "id": "forest-ranger",
+      "name": "林野游侠",
+      "gender": "female",
+      "design": "Adult female26, short honeybrown hair, olive-green small capelet hood DOWN, tan fitted leather tunic brown trousers and boots, leather bracers, warm focused mature face, compact hunting dagger right hand, practical fully clothed."
+    },
+    {
+      "id": "lingxiao-cultivator",
+      "name": "凌霄剑修",
+      "gender": "male",
+      "design": "Adult Chinese male immortal29, refined beautiful masculine face lean athletic, long black hair half-tied silver crown, ivory and inkblue layered xianxia robes gold cloud embroidery, knee-length split panels over white tunic dark fitted trousers boots, elegant belt, short luminous paleblue straight Chinese sword right hand. Small cyan magic left palm, expressive cloth contained in own cell. Premium cultivation swordsman."
+    },
+    {
+      "id": "amber-monk",
+      "name": "黄岳",
+      "gender": "male",
+      "design": "Adult Chinese man age 30, lean athletic martial artist, amber-gold overcoat over fully covered cream tunic and dark trousers, cloth wraps, mature serene face, fists and small contained golden chi."
+    },
+    {
+      "id": "moonlit-spear-guard",
+      "name": "沈月璃",
+      "gender": "female",
+      "design": "Adult woman age 29, silver-black tied-back hair, dark navy and moon-silver practical armor with covered chest limbs and trousers, calm stern face, long silver spear."
+    },
+    {
+      "id": "ember-gunslinger",
+      "name": "绯烬",
+      "gender": "female",
+      "design": "Adult woman age 28, auburn hair under practical hat, fully covered dark red leather duster and high-neck shirt, trousers and boots, mature face, compact fantasy hand-crossbow."
+    },
+    {
+      "id": "azure-healer",
+      "name": "蓝翎医师",
+      "gender": "female",
+      "design": "Adult woman age 32, deep-blue braided hair, fully covered white and cobalt healer combat coat, trousers and boots, mature gentle face, compact gold-blue staff."
+    },
+    {
+      "id": "mountain-exorcist",
+      "name": "玄岳道长",
+      "gender": "male",
+      "design": "Adult Chinese man age 31, short black hair, ivory and deep-red Daoist combat robes, practical covered layers and boots, bronze talismans at belt, focused face, ritual sword."
+    },
+    {
+      "id": "shadow-assassin",
+      "name": "夜渡",
+      "gender": "male",
+      "design": "Adult man age 29, dark tied hair, charcoal and muted teal fitted stealth armor covering arms and legs, boots, mature alert face, twin short blades."
+    },
+    {
+      "id": "clockwork-knight",
+      "name": "伊芙",
+      "gender": "female",
+      "design": "Adult woman age 30, auburn bob, practical silver-bronze articulated plate armor over navy cloth, covered limbs, visible face, forearm buckler and short sword."
+    },
+    {
+      "id": "storm-lancer",
+      "name": "霆锋",
+      "gender": "male",
+      "design": "Adult man age 27, dark blue tied hair, white and cobalt armor, practical greaves, long spear, subtle lightning."
+    },
+    {
+      "id": "desert-falconer",
+      "name": "阿莎",
+      "gender": "female",
+      "design": "Adult woman age 28, dark braids beneath cream scarf, covered sand-and-teal desert coat, trousers and boots, bow, falcon on glove in idle poses."
+    },
+    {
+      "id": "beastkeeper",
+      "name": "森语",
+      "gender": "male",
+      "design": "Adult man age 34, brown skin and short curls, forest-green vest over covered tan shirt and trousers, boots, warm face, wooden staff with leaf charm."
+    },
+    {
+      "id": "star-oracle",
+      "name": "星轨",
+      "gender": "female",
+      "design": "Adult woman age 31, violet-black bob with silver pin, covered midnight-purple tailored coat and trousers, silver constellations, compact astrolabe staff."
+    },
+    {
+      "id": "thunder-priest",
+      "name": "雷音",
+      "gender": "male",
+      "design": "Adult man age 32, ash-blond hair tied low, covered cream and plum ceremonial battle robes, trousers and boots, calm face, short dark staff and beads."
+    },
+    {
+      "id": "silver-wolf",
+      "name": "银月狼",
+      "gender": "animal",
+      "design": "Silver gray wolf with amber eyes, charcoal saddle markings, fluffy tail, athletic build."
+    },
+    {
+      "id": "ember-fox",
+      "name": "赤尾灵狐",
+      "gender": "animal",
+      "design": "Nimble russet fox with white chest, black socks, copper eyes and large tail with tiny warm glow."
+    },
+    {
+      "id": "snow-tiger",
+      "name": "雪纹白虎",
+      "gender": "animal",
+      "design": "Strong white tiger with dark charcoal stripes, pale blue eyes, adult feline body and long tail."
+    },
+    {
+      "id": "raven-scout",
+      "name": "夜鸦",
+      "gender": "animal",
+      "design": "Large intelligent glossy black raven with subtle blue sheen, crisp feather silhouette and strong wings."
+    }
+  ]
+}

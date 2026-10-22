@@ -1,0 +1,27 @@
+{
+  "name": "dsh-tavern-game",
+  "version": "0.1.0",
+  "description": "为 DSH Tavern 添加剧情驱动的回合制战斗、玩法包、技能、背包和动作立绘",
+  "type": "module",
+  "main": "index.mjs",
+  "exports": {
+    ".": "./index.mjs",
+    "./client": "./client.js"
+  },
+  "dsh": {
+    "client": {
+      "platform": "web",
+      "inject": [
+        "dsh-tavern-plugin"
+      ]
+    }
+  },
+  "scripts": {
+    "test": "node --test \"test-simple/**/*.test.mjs\"",
+    "check": "node scripts/check.mjs",
+    "verify:palette": "node tools/verify-roster-palette.mjs",
+    "package": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/package.ps1",
+    "preview:browser": "node tools/browser-dev-server.mjs"
+  },
+  "license": "MIT"
+}
