@@ -1,0 +1,7 @@
+interface:
+  display_name: "DSH 玩法包与外观包"
+  short_description: "为 DSH 战斗插件制作并校验可导入的玩法包与角色外观包"
+  brand_color: "#5B4BDB"
+  default_prompt: "Use $dsh-tavern-authoring to create a DSH battle pack or appearance bundle."
+policy:
+  allow_implicit_invocation: true

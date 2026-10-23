@@ -61,6 +61,53 @@ test('main generation always calls AI once for roles, skill descriptions and rea
   assert.equal(view.sourceReport.context.historyRead, 6); assert(view.sourceReport.bytes <= 8192);
 });
 
+test('AI actor types and individual skill power/element survive save, reload and manual editing', async () => {
+  const fixture = host({ variables: {}, text: '林青是一位擅长火与雷的法师。', result: { party: [member('林青', {
+    types: ['fire', 'electric'], skills: [
+      { name: '火矛', baseId: 'human-0-1', power: 110, element: 'fire' },
+      { name: '雷矛', baseId: 'human-0-1', power: 80, element: 'electric' },
+      { name: '护盾', baseId: 'human-0-13', power: 0, element: 'spirit' },
+      { name: '疗愈', baseId: 'human-0-17', power: 0, element: 'light' },
+    ],
+  })], items: [] } });
+  const view = await fixture.call('generate-party', ticket(await fixture.call('state')));
+  assert.deepEqual(view.party[0].types, ['fire', 'electric']);
+  assert.deepEqual(view.party[0].skills.map(skill => skill.power), [110, 80, 0, 0]);
+  assert.deepEqual(view.party[0].skills.map(skill => skill.element), ['fire', 'electric', 'spirit', 'light']);
+  const loaded = await fixture.call('state');
+  assert.deepEqual(loaded.party, view.party);
+  loaded.party[0].types = ['water']; loaded.party[0].skills[0].power = 90; loaded.party[0].skills[0].element = 'water';
+  const edited = await fixture.call('save-party', { ...ticket(loaded), party: loaded.party });
+  assert.deepEqual(edited.party[0].types, ['water']); assert.equal(edited.party[0].skills[0].power, 90);
+  assert.equal(edited.party[0].skills[0].element, 'water'); assert.match(edited.party[0].skills[0].description, /威力90/);
+  assert.equal(fixture.calls.tasks.length, 1);
+});
+
+test('generation keeps AI metadata with MVU stats and gives explicit MVU skill/type metadata priority', async () => {
+  const result = { party: [member('林青', { types: ['fire'], skills: member('林青').skills.map((skill, index) => ({ ...skill, power: index < 2 ? 70 : 0, element: 'fire' })) })], items: [] };
+  const fixture = host({ result, variables: { 主角: { name: '林青', hp: 0, maxHp: 100, attack: 17,
+    types: ['water'], skills: [{ name: '破防拳', power: 112, element: 'electric' }] } } });
+  const view = await fixture.call('generate-party', ticket(await fixture.call('state')));
+  assert.equal(view.party[0].hp, 0); assert.equal(view.party[0].attack, 17);
+  assert.deepEqual(view.party[0].types, ['water']);
+  assert.equal(view.party[0].skills[0].power, 112); assert.equal(view.party[0].skills[0].element, 'electric');
+  assert.equal(view.party[0].skills[1].power, 70); assert.equal(view.party[0].skills[1].element, 'fire');
+  assert.match(view.party[0].skills[0].description, /威力112/);
+  assert.equal(fixture.calls.tasks.length, 1);
+});
+
+test('manual save rejects malformed power/type atomically instead of silently resetting it', async () => {
+  const fixture = host(); const view = await fixture.call('generate-party', ticket(await fixture.call('state'))), before = fixture.saved();
+  for (const patch of [{ power: 141 }, { power: 0 }, { element: 'void' }]) {
+    const party = copy(view.party); Object.assign(party[0].skills[0], patch);
+    await assert.rejects(fixture.call('save-party', { ...ticket(view), party }), error => error.code === 'INVALID_PARTY');
+    assert.deepEqual(fixture.saved(), before);
+  }
+  const party = copy(view.party); party[0].skills[2].power = 70;
+  await assert.rejects(fixture.call('save-party', { ...ticket(view), party }), error => error.code === 'INVALID_PARTY');
+  assert.deepEqual(fixture.saved(), before);
+});
+
 test('source toggles omit disabled context/MVU and history ranges follow 0–20 without retrieval loops', async () => {
   const fixture = host({ text: 'CONTEXT_SECRET 林青和阿白。' });
   const start = await fixture.call('state');

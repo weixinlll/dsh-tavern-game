@@ -50,6 +50,19 @@ window.__ModuleLoader__.load({
     const unpack = (result) => result?.state || result?.stateView || result
     const actorHp = (a) => Math.max(0, Number(a?.hp) || 0)
     const hpPercent = (a) => Number(a?.maxHp) > 0 ? Math.max(0, Math.min(100, 100 * actorHp(a) / Number(a.maxHp))) : 0
+    const elementLabel = (id, catalog) => array(catalog).find(type => type.id === id)?.name || (id === 'neutral' || !id ? '无属性' : id)
+    const typesLabel = (actor, catalog) => (array(actor?.types).length ? actor.types : ['neutral']).map(id => elementLabel(id, catalog)).join(' / ')
+    const skillMatchup = (skill, target, chart) => {
+      if (!(Number(skill?.power) > 0) || !target) return ''
+      const multiplier = Math.max(.25, Math.min(4, (array(target.types).length ? target.types : ['neutral']).reduce((value, type) => value * (chart?.[skill.element]?.[type] ?? 1), 1)))
+      return multiplier > 1 ? `效果拔群 ×${multiplier}` : multiplier < 1 ? `效果不佳 ×${multiplier}` : '正常效果 ×1'
+    }
+    const BUILTIN_SCENES = [
+      { id: 'forest-clearing', name: '林间遗迹' }, { id: 'mountain-courtyard', name: '山海古庭' },
+      { id: 'celestial-terrace', name: '云海天宫' }, { id: 'glacial-citadel', name: '极光冰城' }, { id: 'volcanic-sanctum', name: '熔火圣殿' },
+    ]
+    const sceneKey = gameId => `dsh-battle-scene:${gameId}`
+    const sceneChoice = gameId => { try { const id = localStorage.getItem(sceneKey(gameId)); return BUILTIN_SCENES.some(scene => scene.id === id) ? id : '' } catch (_) { return '' } }
     const inProgress = (view) => !!(view?.readOnly || view?.turnState?.busy || view?.turnState?.generating || view?.turnState?.settling)
     const failureText = (error, fallback) => {
       const text = String(error?.code || '') + ' ' + String(error?.message || '')
@@ -104,6 +117,28 @@ window.__ModuleLoader__.load({
       const context = canvas.getContext('2d', { willReadFrequently: true }); if (!context) throw new Error('canvas is unavailable')
       context.drawImage(picture, 0, 0); picture.src = ''
       const image = context.getImageData(0, 0, canvas.width, canvas.height), pixels = image.data, palette = makePalette(seed)
+      const hairPalette = makePalette((Number(seed) ^ 0x85ebca6b) >>> 0)
+      // Learn a conservative hair-color signature from the crown of the standing
+      // pose. Apply it only around the upper silhouette in other poses. This
+      // makes hair independent from clothes without turning faces or hands green.
+      // Tiny raster probes and arbitrary imported images never enter this path.
+      const tileSize = canvas.width === canvas.height && canvas.width >= 512 && canvas.width % 4 === 0 ? canvas.width / 4 : 0
+      const hairKeys = new Uint8Array(262144), hairLookup = new Int16Array(262144 * 3), hairReady = new Uint8Array(262144)
+      const hairBounds = Array.from({ length: 16 }, () => ({ top: Infinity, bottom: -1 }))
+      if (category === 'human' && tileSize) {
+        for (let i = 0; i < pixels.length; i += 4) {
+          if (pixels[i + 3] < 224) continue
+          const x = (i / 4) % canvas.width, y = Math.floor(i / (canvas.width * 4)), cell = Math.floor(y / tileSize) * 4 + Math.floor(x / tileSize)
+          hairBounds[cell].top = Math.min(hairBounds[cell].top, y % tileSize); hairBounds[cell].bottom = Math.max(hairBounds[cell].bottom, y % tileSize)
+        }
+        const crown = hairBounds[3], crownEnd = crown.top + (crown.bottom - crown.top) * .08
+        for (let y = crown.top; y <= crownEnd; y++) for (let x = tileSize * 3; x < tileSize * 4; x++) {
+          const i = (y * canvas.width + x) * 4
+          if (pixels[i + 3] < 224) continue
+          const key = ((pixels[i] >> 2) << 12) | ((pixels[i + 1] >> 2) << 6) | (pixels[i + 2] >> 2)
+          hairKeys[key] = 1
+        }
+      }
       // Quantized lookup keeps the 4M-pixel atlas inexpensive while preserving
       // alpha and the hand-painted light/shadow ramps of the original artwork.
       const lookup = new Int16Array(262144 * 3), ready = new Uint8Array(262144)
@@ -122,9 +157,10 @@ window.__ModuleLoader__.load({
           const deepWarmGarment = smooth(.72, .90, saturation) * (1 - smooth(.34, .48, lightness))
           const goldGarment = smooth(38, 52, hue) * (1 - smooth(70, 90, hue)) * smooth(.70, .90, saturation) * (1 - smooth(.68, .88, lightness))
           const neutralGarment = (1 - smooth(.10, .20, saturation)) * smooth(.18, .28, lightness) * (1 - smooth(.38, .55, lightness)) * ((red > green && green > blue) ? 0 : 1)
-          const garment = category === 'human' ? Math.max(Math.max(coolGarment, redGarment, deepWarmGarment, goldGarment) * smooth(.12, .26, saturation), neutralGarment) : smooth(.12, .26, saturation)
+          const animalNeutral = (1 - smooth(.12, .28, saturation)) * smooth(.14, .28, lightness) * (1 - smooth(.82, .96, lightness))
+          const garment = category === 'human' ? Math.max(Math.max(coolGarment, redGarment, deepWarmGarment, goldGarment) * smooth(.12, .26, saturation), neutralGarment) : Math.max(smooth(.12, .26, saturation), animalNeutral)
           const weight = garment * smooth(.065, .16, lightness) * (1 - smooth(.88, .98, lightness))
-          if (weight <= 0) { ready[key] = 2; continue }
+          if (weight <= 0) ready[key] = 2
           const neutralBlend = 1 - smooth(.10, .22, saturation)
           const newHue = (hue * (1 - neutralBlend) + palette.rotation + palette.warp * Math.sin((hue + palette.phase) * Math.PI / 180) * (1 - neutralBlend) + 360) % 360
           const newSaturation = Math.min(.96, saturation * (1 - palette.mix) + palette.saturation * palette.mix)
@@ -133,9 +169,27 @@ window.__ModuleLoader__.load({
           // Store deltas rather than quantized colors: retain the original fine
           // gradients and antialiasing instead of flattening them into blocks.
           lookup[at] = Math.round((recolored[0] - red) * weight); lookup[at + 1] = Math.round((recolored[1] - green) * weight); lookup[at + 2] = Math.round((recolored[2] - blue) * weight)
-          ready[key] = 1
+          if (weight > 0) ready[key] = 1
         }
-        if (ready[key] === 1) { pixels[i] += lookup[at]; pixels[i + 1] += lookup[at + 1]; pixels[i + 2] += lookup[at + 2] }
+        let hairWeight = 0
+        if (category === 'human' && hairKeys[key]) {
+          const x = (i / 4) % canvas.width, y = Math.floor(i / (canvas.width * 4)), cell = Math.floor(y / tileSize) * 4 + Math.floor(x / tileSize), bounds = hairBounds[cell]
+          hairWeight = 1 - smooth(.25, .43, (y % tileSize - bounds.top) / Math.max(1, bounds.bottom - bounds.top))
+          if (!hairReady[key]) {
+            const red = ((key >> 12) & 63) * 4 + 2, green = ((key >> 6) & 63) * 4 + 2, blue = (key & 63) * 4 + 2
+            const [hue, saturation, lightness] = rgbToHsl(red, green, blue)
+            const skinCore = hue >= 10 && hue <= 55 && red > green && green > blue && saturation >= .16 && saturation <= .70 && lightness >= .22 && lightness <= .91
+            const warmSkin = hue >= 0 && hue < 65 && saturation > .12 && lightness >= .30
+            const weight = skinCore || warmSkin ? 0 : smooth(.07, .17, lightness) * (1 - smooth(.84, .96, lightness))
+            const hair = hslToRgb((hue * .25 + hairPalette.rotation + 360) % 360, Math.min(.72, .28 + hairPalette.saturation * .48), Math.min(.84, lightness + .06 + Math.max(0, hairPalette.brightness)))
+            hairLookup[at] = Math.round((hair[0] - red) * weight); hairLookup[at + 1] = Math.round((hair[1] - green) * weight); hairLookup[at + 2] = Math.round((hair[2] - blue) * weight)
+            hairReady[key] = weight > 0 ? 1 : 2
+          }
+          if (hairReady[key] !== 1) hairWeight = 0
+        }
+        if (ready[key] === 1 || hairWeight > 0) {
+          for (let channel = 0; channel < 3; channel++) pixels[i + channel] += Math.round(lookup[at + channel] * (1 - hairWeight) + hairLookup[at + channel] * hairWeight)
+        }
       }
       context.putImageData(image, 0, 0)
       const blob = await new Promise((resolve, reject) => canvas.toBlob(value => value ? resolve(value) : reject(new Error('PNG encoding failed')), 'image/png'))
@@ -257,7 +311,9 @@ window.__ModuleLoader__.load({
       'silver-wolf': 'animal', 'ember-fox': 'animal', 'snow-tiger': 'animal', 'raven-scout': 'animal',
       'azure-eastern-dragon': 'animal', 'western-dragon': 'animal', qilin: 'animal', xuanwu: 'animal',
       'forest-fae': 'animal', phoenix: 'animal', pegasus: 'animal', griffin: 'animal', unicorn: 'animal',
-      'nine-tail-fox': 'animal', thunderbird: 'animal', 'sea-serpent': 'animal' }
+      'nine-tail-fox': 'animal', thunderbird: 'animal', 'sea-serpent': 'animal',
+      'desert-scorpion': 'animal', 'wild-bear': 'animal', 'savanna-lion': 'animal', 'giant-lizard': 'animal',
+      'golden-staff-warrior': 'male', 'elder-staff-mage': 'male' }
     const explicitGender = actor => {
       const identity = `${actor?.gender || ''} ${actor?.sex || ''} ${actor?.appearance?.gender || ''}`
       return /female|woman|girl|女/i.test(identity) ? 'female' : /male|man|boy|男/i.test(identity) ? 'male' : ''
@@ -267,7 +323,7 @@ window.__ModuleLoader__.load({
       const species = String(actor?.species || '').trim(), kind = String(actor?.kind || '').trim()
       const identity = `${actor?.name || ''} ${species}`
       const human = /^(?:human|person|humanoid|人类|人族|凡人|人形)$/i.test(kind) || /^(?:human|person|humanoid|人类|人族|凡人|人形)$/i.test(species)
-      const animal = !human && (/(?:狼|狐|虎|猫|犬|狗|豹|鸟|鸦|鹰|鹿|蛇|蜥|蜘蛛|蟒|狮|龟|熊猫|黑熊|白熊|熊妖|龙|麒麟|玄武|凤凰|天马|飞马|狮鹫|独角兽|灵狐|神鸟|雷鸟|海蛇|蛟龙|精灵|仙子|花妖|妖精|wolf|fox|tiger|raven|crow|eagle|bear|deer|snake|dragon|qilin|phoenix|pegasus|griffin|unicorn|thunderbird|fairy|fae|beast|animal|creature|pet|monster|灵兽|妖兽|宠物|野兽)/i.test(identity)
+      const animal = !human && (/(?:狼|狐|虎|猫|犬|狗|豹|鸟|鸦|鹰|鹿|蛇|蜥|蝎|蜘蛛|蟒|狮|龟|熊|龙|麒麟|玄武|凤凰|天马|飞马|狮鹫|独角兽|灵狐|神鸟|雷鸟|海蛇|蛟龙|精灵|仙子|花妖|妖精|wolf|fox|tiger|raven|crow|eagle|bear|lion|lizard|scorpion|deer|snake|dragon|qilin|phoenix|pegasus|griffin|unicorn|thunderbird|fairy|fae|beast|animal|creature|pet|monster|灵兽|妖兽|宠物|野兽)/i.test(identity)
         || /^(?:animal|beast|creature|pet|monster|灵兽|妖兽|宠物|野兽|动物)$/i.test(kind))
       if (animal) {
         const kinds = [[/(?:东方龙|青龙|东海龙|azure dragon|eastern dragon)/i, 'azure-eastern-dragon'],
@@ -277,8 +333,9 @@ window.__ModuleLoader__.load({
           [/(?:九尾狐|灵狐|狐妖|nine.?tail.?fox)/i, 'nine-tail-fox'], [/(?:雷鸟|雷云神鸟|thunderbird)/i, 'thunderbird'],
           [/(?:海蛇|蛟龙|海龙|sea serpent)/i, 'sea-serpent'], [/(?:森林精灵|萤森精灵|仙子|花妖|妖精|forest fae|fairy|fae)/i, 'forest-fae'],
           [/(?:狼|wolf)/i, 'silver-wolf'], [/(?:狐|fox)/i, 'ember-fox'], [/(?:虎|tiger)/i, 'snow-tiger'],
-          [/(?:鸦|乌鸦|鸟|raven|crow|eagle)/i, 'raven-scout'], [/(?:龙|dragon)/i, 'western-dragon']]
-        const specific = kinds.slice(0, 12), common = kinds.slice(12, 16), generic = kinds.slice(16)
+          [/(?:鸦|乌鸦|鸟|raven|crow|eagle)/i, 'raven-scout'], [/(?:蝎|scorpion)/i, 'desert-scorpion'],
+          [/(?:熊|bear)/i, 'wild-bear'], [/(?:狮|lion)/i, 'savanna-lion'], [/(?:蜥|lizard)/i, 'giant-lizard'], [/(?:龙|dragon)/i, 'western-dragon']]
+        const specific = kinds.slice(0, 12), common = kinds.slice(12, -1), generic = kinds.slice(-1)
         const match = specific.find(([pattern]) => pattern.test(species)) || specific.find(([pattern]) => pattern.test(actor?.name || ''))
           || common.find(([pattern]) => pattern.test(species)) || common.find(([pattern]) => pattern.test(actor?.name || ''))
           || generic.find(([pattern]) => pattern.test(species)) || generic.find(([pattern]) => pattern.test(actor?.name || ''))
@@ -481,7 +538,7 @@ function layeredRigTemplate() {
         h('div', { className: 'stg-preview-actions' }, ...[['idle', '站立'], ['attack', '攻击'], ['kick', '踢击'], ['cast', '施法'], ['guard', '防御']].filter(([key]) => appearance.rig.clips[key]).map(([key, name]) => h('button', { key, type: 'button', onClick: () => { setMode(key); setStep(0); setReplay(value => value + 1) } }, name))))
     }
 
-    function PartyCard({ actor, index, gameId, onSave, onDesign, busy, disabled }) {
+    function PartyCard({ actor, index, gameId, onSave, onDesign, busy, disabled, elementCatalog = [{ id: 'neutral', name: '无属性' }], avatarCatalog = {} }) {
       const [draft, setDraft] = useState(() => ({
         ...actor,
         skills: array(actor?.skills).map((skill) => ({ ...skill })),
@@ -510,6 +567,7 @@ function layeredRigTemplate() {
           h('label', null, '当前 HP', h('input', { type: 'number', min: 0, max: Number(draft.maxHp) || 999999, value: draft.hp ?? '', onChange: (e) => setField('hp', e.target.value) })),
           h('label', null, '最大 HP', h('input', { type: 'number', min: 1, value: draft.maxHp ?? '', onChange: (e) => setMaxHp(e.target.value) })),
           ...['attack', 'defense', 'speed'].map((key) => h('label', { key }, ({ attack: '攻击', defense: '防御', speed: '速度' })[key], h('input', { type: 'number', value: draft[key] ?? 0, onChange: (e) => setStat(key, e.target.value) }))),
+          ...[0, 1].map(slot => h('label', { key: `type-${slot}`, style: { gridColumn: 'span 2' } }, slot ? '副属性（可选）' : '主属性', h('select', { 'aria-label': slot ? '角色副属性' : '角色主属性', value: draft.types?.[slot] || (slot ? '' : 'neutral'), onChange: e => setDraft(previous => { const types = [...(previous.types || ['neutral'])]; types[slot] = e.target.value; return { ...previous, types: [...new Set(types.filter(Boolean))] } }) }, slot ? h('option', { value: '' }, '无副属性') : null, elementCatalog.map(type => h('option', { key: type.id, value: type.id }, type.name))))),
           h('details', { className: 'stg-skillfold' }, h('summary', null, 'AI 单独设计当前角色'),
             h('small', null, '只生成这名角色的可编辑草稿，不改其他队友或背包；检查后点本卡底部“保存”生效。'),
             h('label', null, '设计要求', h('textarea', { value: requirements, maxLength: 2000, rows: 2, style: { width: '100%', resize: 'vertical' }, placeholder: '描述角色定位、数值倾向或技能风格', onChange: e => setRequirements(e.target.value) })),
@@ -542,8 +600,12 @@ function layeredRigTemplate() {
             h('div', { className: 'stg-skillrows' }, array(draft.skills).map((skill, skillIndex) => h('details', { key: skillIndex }, h('summary', null, skill.name || `技能 ${skillIndex + 1}`), h('label', null, '名称', h('input', {
               value: skill.name || '', maxLength: 40,
               onChange: (e) => setDraft((d) => ({ ...d, skills: d.skills.map((item, i) => i === skillIndex ? { ...item, name: e.target.value, id: undefined, baseId: undefined, mechanics: [], extraStatuses: [], sourceDescription: '' } : item) })),
-            })), h('label', null, '原文效果', h('textarea', { value: skill.sourceDescription ?? '', maxLength: 400, rows: 2, style: { width: '100%', resize: 'vertical' }, placeholder: '例如：必定先攻、必中、必定暴击，并使目标中毒', onChange: (e) => setDraft((d) => ({ ...d, skills: d.skills.map((item, i) => i === skillIndex ? { ...item, id: undefined, baseId: undefined, mechanics: [], extraStatuses: [], sourceDescription: e.target.value, description: e.target.value } : item) })) })), h('small', null, skill.description || '保存后显示实际效果'))))),
+            })), h('label', null, '技能属性', h('select', { 'aria-label': `技能${skillIndex + 1}属性`, value: skill.element || 'neutral', onChange: e => setDraft(d => ({ ...d, skills: d.skills.map((item, i) => i === skillIndex ? { ...item, element: e.target.value } : item) })) }, elementCatalog.map(type => h('option', { key: type.id, value: type.id }, type.name)))),
+            h('label', null, '威力', h('input', { 'aria-label': `技能${skillIndex + 1}威力`, type: 'number', min: 0, max: 140, value: skill.power ?? 70, onChange: e => setDraft(d => ({ ...d, skills: d.skills.map((item, i) => i === skillIndex ? { ...item, power: Number(e.target.value) } : item) })) })),
+            h('label', null, '原文效果', h('textarea', { value: skill.sourceDescription ?? '', maxLength: 400, rows: 2, style: { width: '100%', resize: 'vertical' }, placeholder: '例如：必定先攻、必中、必定暴击，并使目标中毒', onChange: (e) => setDraft((d) => ({ ...d, skills: d.skills.map((item, i) => i === skillIndex ? { ...item, id: undefined, baseId: undefined, mechanics: [], extraStatuses: [], sourceDescription: e.target.value, description: e.target.value } : item) })) })), h('small', null, '攻击威力20–140；辅助技能威力0。 ', skill.description || '保存后显示实际效果'))))),
           h('details', { className: 'stg-skillfold' }, h('summary', null, '角色外观'), h('div', { className: 'stg-appearance' },
+            h('label', null, '内置外观', h('select', { 'aria-label': '角色内置外观', value: draft.avatarId || '', onChange: e => setField('avatarId', e.target.value) }, h('option', { value: '' }, '按角色特征自动匹配'), Object.entries(avatarCatalog).map(([id, avatar]) => h('option', { key: id, value: id }, avatar.name || id)))),
+            h('small', null, '内置外观用通用职业和物种命名；个人导入的图片优先显示。'),
             h('label', null, '导入完整外观包（含动作）', h('input', { type: 'file', accept: '.json,application/json', 'aria-label': '导入完整外观包（含动作）', disabled: disabled || !actor?.id, onChange: async e => {
               const file = e.target.files?.[0]; e.target.value = ''; if (!file) return
               try {
@@ -612,6 +674,7 @@ function layeredRigTemplate() {
       const [manualText, setManualText] = useState('')
       const [injectStory, setInjectStory] = useState(false)
       const [mediaNotice, setMediaNotice] = useState('')
+      const [builtinScene, setBuiltinScene] = useState(() => sceneChoice(gameId))
       const [sourceOptions, setSourceOptions] = useState({ useContext: true, useMvu: true, useWorldbook: false, useLedger: false, historyRounds: 6, ledgerText: '' })
       const [modelOptions, setModelOptions] = useState(null)
       const [modelBusy, setModelBusy] = useState(false)
@@ -619,6 +682,8 @@ function layeredRigTemplate() {
       const [updateInfo, setUpdateInfo] = useState(null)
       const [updateBusy, setUpdateBusy] = useState('')
       const [updateNote, setUpdateNote] = useState('')
+      const [rollbackChoices, setRollbackChoices] = useState([])
+      const [rollbackChoice, setRollbackChoice] = useState('')
       const modelRequest = useRef(0)
       const mounted = useRef(true)
       const op = useRef(0)
@@ -811,6 +876,21 @@ function layeredRigTemplate() {
         } catch (e) { setUpdateNote(failureText(e, '检查更新失败。')) }
         finally { setUpdateBusy('') }
       }
+      const loadBackups = async () => {
+        if (updateBusy) return
+        setUpdateBusy('backups'); setUpdateNote('')
+        try { const result = await ctx.tavernUi.callHost('dsh-tavern-game/list-update-backups', { gameId }); const backups = array(result?.backups); setRollbackChoices(backups); setRollbackChoice(backups[0] || ''); if (!backups.length) setUpdateNote('没有可用的完整备份；旧版不完整备份不会用于回滚。') }
+        catch (error) { setUpdateNote(failureText(error, '读取备份失败。')) }
+        finally { setUpdateBusy('') }
+      }
+      const restoreBackup = async () => {
+        if (updateBusy || !rollbackChoice) return
+        if (typeof window !== 'undefined' && typeof window.confirm === 'function' && !window.confirm('恢复选中的完整插件备份？当前版本会先备份，完成后需要重启 DSH。')) return
+        setUpdateBusy('rollback'); setUpdateNote('')
+        try { const result = await ctx.tavernUi.callHost('dsh-tavern-game/rollback-update', { gameId, backup: rollbackChoice }); setUpdateNote(`已恢复 ${result.from} → ${result.to}，请重启 DSH 并刷新页面。`); setRollbackChoices([]); setRollbackChoice(''); setUpdateInfo(null) }
+        catch (error) { setUpdateNote(failureText(error, '恢复失败，请保留备份目录并查看错误详情。')) }
+        finally { setUpdateBusy('') }
+      }
       const installUpdate = async () => {
         if (updateBusy || !updateInfo?.latest) return
         if (typeof window !== 'undefined' && typeof window.confirm === 'function'
@@ -818,9 +898,10 @@ function layeredRigTemplate() {
         setUpdateBusy('install'); setUpdateNote('')
         try {
           const result = await ctx.tavernUi.callHost('dsh-tavern-game/install-update', { gameId, expected: updateInfo.latest })
+          if (!result?.updated) { setUpdateNote(result?.notice || '当前磁盘上的插件已经是最新版本，请重启 DSH 加载。'); setUpdateInfo({ ...updateInfo, updateAvailable: false, current: result?.current || updateInfo.current }); return }
           setUpdateNote(`已更新 ${result.from} → ${result.to}（${result.written} 个文件），请重启 DSH 并刷新页面。`)
           setUpdateInfo({ ...updateInfo, updateAvailable: false, current: result.to })
-        } catch (e) { setUpdateNote(failureText(e, '更新失败，原文件已备份到 .update-backup。')) }
+        } catch (e) { setUpdateNote(failureText(e, '更新失败，请查看完整性检查或恢复提示。')) }
         finally { setUpdateBusy('') }
       }
       const selected = current.selectedPackId || current.packId || ''
@@ -831,6 +912,10 @@ function layeredRigTemplate() {
           `新版本 ${updateInfo.latest}（当前 ${updateInfo.current}）`,
           h('button', { style: { minHeight: 24, padding: '2px 8px' }, disabled: !!updateBusy, onClick: installUpdate }, updateBusy === 'install' ? '更新中…' : '立即更新')) : null,
         updateNote ? h('small', { role: 'status', style: { display: 'block', padding: '4px 2px' } }, updateNote) : null,
+        h('details', { className: 'stg-mediafold' }, h('summary', null, '更新与恢复'),
+          h('small', null, '更新先校验完整包并备份；失败会尝试恢复旧版本。恢复后需重启 DSH。'),
+          h('button', { type: 'button', disabled: !!updateBusy, onClick: loadBackups }, updateBusy === 'backups' ? '读取备份…' : '查看完整备份'),
+          rollbackChoices.length ? h('div', { className: 'stg-actions' }, h('select', { 'aria-label': '选择恢复备份', value: rollbackChoice, onChange: e => setRollbackChoice(e.target.value) }, rollbackChoices.map((id, index) => h('option', { key: id, value: id }, `备份 ${index + 1} · ${id.slice(0, 8)} ${id.slice(8, 10)}:${id.slice(10, 12)}`))), h('button', { disabled: !!updateBusy, onClick: restoreBackup }, updateBusy === 'rollback' ? '恢复中…' : '恢复此备份')) : null),
         h('div', { className: 'stg-controls' },
           h('label', null, '玩法包', h('select', { value: selected, disabled: locked, onChange: (e) => selectPack(e.target.value) },
             h('option', { value: '' }, '选择玩法包'), ...packs.map((pack) => h('option', { key: pack.id, value: pack.id }, pack.name)))),
@@ -863,6 +948,7 @@ function layeredRigTemplate() {
           h('details', { className: 'stg-import-category' }, h('summary', null, '玩法包'), h('div', { className: 'stg-media-imports' },
             h('label', null, '导入自定义玩法包（JSON，≤256 KB）', h('input', { type: 'file', accept: '.json,application/json', disabled: locked, onChange: importPack })))),
           h('details', { className: 'stg-import-category' }, h('summary', null, '场景背景'), h('div', { className: 'stg-media-imports' },
+            h('label', null, '内置战斗场景', h('select', { 'aria-label': '内置战斗场景', value: builtinScene, onChange: async e => { const id = e.target.value; setBuiltinScene(id); try { localStorage.setItem(sceneKey(gameId), id) } catch (_) {} await putMedia(gameId, 'scene', null); setMediaNotice('已切回内置场景；每场自动选择会保持到战斗结束。') } }, h('option', { value: '' }, '每场自动选择'), BUILTIN_SCENES.map(scene => h('option', { key: scene.id, value: scene.id }, scene.name)))),
             h('label', null, '导入场景图片（≤12 MB）', h('input', { type: 'file', accept: 'image/png,image/jpeg,image/webp,image/gif', 'aria-label': '导入场景图片', onChange: e => importMedia('scene', e) })))),
           h('details', { className: 'stg-import-category' }, h('summary', null, '声音'), h('div', { className: 'stg-media-imports' },
             ...[['attack', '攻击音效'], ['hit', '受击音效'], ['music', '战斗音乐']].map(([key, label]) => h('label', { key }, label, h('input', { type: 'file', accept: 'audio/*', onChange: e => importMedia(key, e) }))))),
@@ -878,7 +964,7 @@ function layeredRigTemplate() {
           ...array(current.inventory).filter(item => item.count > 0).map((item, i) => h('div', { key: `${item.id || item.name}-${i}` }, `${item.name || item.id || '物品'} ×${item.count ?? 1}`, item.description ? h('small', null, ` · ${item.description}`) : null)),
           !array(current.inventory).some(item => item.count > 0) ? h('small', null, '只生成战斗可用的疗伤、回气与净化补给。') : null),
         h('section', { className: 'stg-section' }, h('div', { className: 'stg-sectionhead' }, h('h2', null, '队友'), h('small', null, `${party.length} / 6 · 每场最多3人上场 · 每人4招`)),
-          party.length ? h('div', { className: 'stg-party' }, party.slice(0, 6).map((actor, i) => h(PartyCard, { key: actor.id || i, actor, index: i, gameId, onDesign: designActor, onSave: saveParty, busy: busy === 'save' || busy === 'design', disabled: locked }))) : h('div', { className: 'stg-empty' }, '队友为空。点击“AI读取并生成角色和背包”读取当前玩法包；敌人会随剧情自动出现。')),
+          party.length ? h('div', { className: 'stg-party' }, party.slice(0, 6).map((actor, i) => h(PartyCard, { key: actor.id || i, actor, index: i, gameId, elementCatalog: current.elementCatalog, avatarCatalog: current.avatarCatalog, onDesign: designActor, onSave: saveParty, busy: busy === 'save' || busy === 'design', disabled: locked }))) : h('div', { className: 'stg-empty' }, '队友为空。点击“AI读取并生成角色和背包”读取当前玩法包；敌人会随剧情自动出现。')),
         h('div', { className: 'stg-actions' },
           current.battle ? h('button', { disabled: !!busy, onClick: () => start(false) }, '返回战斗') : null,
           h('button', { disabled: !!busy || !selected, onClick: () => start(true) }, '本地演示')),
@@ -890,9 +976,10 @@ function layeredRigTemplate() {
           h('button', { disabled: !!busy || !selected, onClick: startManual }, '开始手动战斗'))))
     }
 
-    function ActorHud({ actor }) {
+    function ActorHud({ actor, elementCatalog }) {
       const pct = hpPercent(actor)
       return h('div', { className: 'stg-hud' }, h('strong', null, actor?.name || '角色'),
+        h('small', { className: 'stg-types' }, typesLabel(actor, elementCatalog)),
         h('div', { className: 'stg-hp', 'data-low': pct <= 25 }, h('span', { style: { width: `${pct}%` } })),
         h('small', null, `${actorHp(actor)} / ${Number(actor?.maxHp) || 0} HP · 资源 ${Number(actor?.resource) || 0}`),
         array(actor?.statuses).length ? h('small', null, array(actor.statuses).slice(0, 5).map(status => `${status.name} ${status.turns}`).join(' · ')) : null)
@@ -1286,7 +1373,10 @@ function layeredRigTemplate() {
       const packId = battle.packId || view.packId || ''
       const packName = array(view.packs).find((pack) => pack.id === packId)?.name || ''
       const fantasyScene = /fantasy|玄幻|西幻|仙侠/i.test(`${packId} ${packName}`)
-      const scene = media.scene || ctx.tavernUi.assetUrl(`human/scene/${fantasyScene ? 'mountain-courtyard' : 'forest-clearing'}.png`)
+      const chosenScene = sceneChoice(gameId)
+      const hashScene = [...String(battle.id || gameId || '')].reduce((value, character) => (value * 31 + character.charCodeAt(0)) >>> 0, 0)
+      const defaultScenes = fantasyScene ? BUILTIN_SCENES.slice(1) : [BUILTIN_SCENES[0], ...BUILTIN_SCENES.slice(2)]
+      const scene = media.scene || ctx.tavernUi.assetUrl(`human/scene/${chosenScene || defaultScenes[hashScene % defaultScenes.length].id}.png`)
       const spriteGender = actor => explicitGender(actor) || (avatarCatalog[avatarFor(actor)]?.gender === 'female' ? 'female' : 'male')
       const isPortrait = (actor, source) => (!!media[`${actor?.id}:texture`] && !media[`${actor?.id}:rig`]) || /\/adventurer-(?:male|female)-v2\.png(?:$|[?#])/.test(source)
       const spriteUrl = (actor, enemy = false) => {
@@ -1351,14 +1441,14 @@ function layeredRigTemplate() {
               const source = spriteUrl(actor)
               return h('div', { key, ...movingFigure(actor), className: 'stg-figure', 'data-avatar': media[`${actor.id}:texture`] ? 'imported' : avatarFor(actor), 'data-palette-seed': actor.avatarPaletteSeed ?? '', 'data-palette-ready': source.startsWith('blob:') ? 'true' : 'false', 'data-act': modeFor(actor), 'data-frame': frameFor(actor), 'data-down': actorHp(actor) <= 0 },
                 h('div', { className: 'stg-visual', style: visualStyle(actor, source) }, isPortrait(actor, source) ? h('img', { src: source, alt: actor.name }) : rigFor(actor) ? rigFigure(actor) : h('div', { className: 'stg-sprite', 'data-frame': frameFor(actor), 'data-mode': '', style: { '--sheet': `url("${source}")` } },
-                  h('img', { className: 'stg-sheet', src: source, alt: '', onError: () => setFailedSprites(previous => ({ ...previous, [source]: true })) }))), h(ActorHud, { actor: presentActor(actor) }), impactNumber(actor))
+                  h('img', { className: 'stg-sheet', src: source, alt: '', onError: () => setFailedSprites(previous => ({ ...previous, [source]: true })) }))), h(ActorHud, { actor: presentActor(actor), elementCatalog: view.elementCatalog }), impactNumber(actor))
             })) : null,
             enemyActors.length ? h('div', { className: 'stg-side', 'data-enemy': true, 'data-count': enemyActors.length }, enemyActors.map(actor => {
               const key = actor.id || actor.name
               const source = spriteUrl(actor, true)
               return h('div', { key, ...movingFigure(actor), className: 'stg-figure', 'data-avatar': media[`${actor.id}:texture`] ? 'imported' : avatarFor(actor), 'data-palette-seed': actor.avatarPaletteSeed ?? '', 'data-palette-ready': source.startsWith('blob:') ? 'true' : 'false', 'data-mirror': true, 'data-act': modeFor(actor), 'data-frame': frameFor(actor), 'data-down': actorHp(actor) <= 0 },
                 h('div', { className: 'stg-visual', style: visualStyle(actor, source) }, isPortrait(actor, source) ? h('img', { src: source, alt: actor.name }) : rigFor(actor, true) ? rigFigure(actor, true) : h('div', { className: 'stg-sprite', 'data-frame': frameFor(actor), 'data-mode': '', style: { '--sheet': `url("${source}")` } },
-                  h('img', { className: 'stg-sheet', src: source, alt: '', onError: () => setFailedSprites(previous => ({ ...previous, [source]: true })) }))), h(ActorHud, { actor: presentActor(actor) }), impactNumber(actor))
+                  h('img', { className: 'stg-sheet', src: source, alt: '', onError: () => setFailedSprites(previous => ({ ...previous, [source]: true })) }))), h(ActorHud, { actor: presentActor(actor), elementCatalog: view.elementCatalog }), impactNumber(actor))
             })) : null))),
           entering ? h('div', { className: 'stg-entry', role: 'status' }, h('strong', null, battle.demo ? '战斗演练' : '遭遇：' + enemies.map(actor => actor.name).slice(0, 3).join('、')), h('span', null, '进入回合制战斗')) : null,
           caption ? h('div', { key: caption, className: 'stg-caption' }, caption) : null),
@@ -1389,7 +1479,7 @@ function layeredRigTemplate() {
               const restricted = array(active?.statuses).some(status => ['taunt', 'disarm'].includes(status.id)) && skill.id !== `${packId}-0-0`
               const silenced = array(active?.statuses).some(status => status.id === 'silence') && skill.kind && !['damage', 'areaDamage'].includes(skill.kind)
               const disabled = locked || skill.usesLeft <= 0 || skill.cooldownLeft > 0 || lacksResource || restricted || silenced
-              return h('button', { key: skill.id, disabled, 'aria-pressed': planned[actingFieldIndex]?.skillId === skill.id, title: skill.description || '', onClick: () => queueAction({ type: 'skill', actorIndex: actingFieldIndex, targetIndex: chosenTargetIndex, skillId: skill.id }) }, h('strong', null, skill.name || '技能'), h('small', null, `${skill.usesLeft == null ? '' : `剩余 ${skill.usesLeft} 次`}${cost ? ` · 消耗 ${cost}` : ''}${skill.cooldownLeft > 0 ? ` · 冷却 ${skill.cooldownLeft}` : ''}${skill.description ? ` · ${skill.description.slice(0, 105)}${skill.description.length > 105 ? '…' : ''}` : ''}`))
+              return h('button', { key: skill.id, disabled, 'aria-pressed': planned[actingFieldIndex]?.skillId === skill.id, title: skill.description || '', onClick: () => queueAction({ type: 'skill', actorIndex: actingFieldIndex, targetIndex: chosenTargetIndex, skillId: skill.id }) }, h('strong', null, skill.name || '技能'), h('small', { className: 'stg-matchup' }, `${elementLabel(skill.element, view.elementCatalog)} · ${Number(skill.power) > 0 ? `威力 ${skill.power}` : '辅助'}${skillMatchup(skill, activeEnemy, view.elementChart) ? ` · ${skillMatchup(skill, activeEnemy, view.elementChart)}` : ''}`), h('small', null, `${skill.usesLeft == null ? '' : `剩余 ${skill.usesLeft} 次`}${cost ? ` · 消耗 ${cost}` : ''}${skill.cooldownLeft > 0 ? ` · 冷却 ${skill.cooldownLeft}` : ''}${skill.description ? ` · ${skill.description.slice(0, 105)}${skill.description.length > 105 ? '…' : ''}` : ''}`))
             }))) : null,
             command === 'bag' ? h('div', { className: 'stg-commandpanel' }, inventory.some(item => Number(item.count) > 0) ? inventory.filter(item => Number(item.count) > 0).map(item => h('div', { key: item.id, className: 'stg-inventory' }, h('strong', null, `${item.name || item.id} ×${item.count}`),
               h('small', null, item.description || ({ 'healing-potion': '恢复25%最大生命，消耗一次行动。', 'resource-potion': '恢复30点资源，消耗一次行动。', cleanse: '清除负面状态，消耗一次行动。' })[item.id]),

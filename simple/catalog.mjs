@@ -1,4 +1,5 @@
-// Fixed local combat vocabulary. Story text may select and rename a preset; it cannot set numbers.
+// Fixed local combat vocabulary; authored power/type are bounded metadata.
+import { validElement, elementName } from './elements.mjs';
 export const PACKS = Object.freeze([
   { id: 'human', name: '人类对决', description: '写实的人物、兵器、格斗与计策。' },
   { id: 'fantasy', name: '玄幻 / 西幻 / 仙侠', description: '法术、灵力、仙术与异界生物。' },
@@ -245,6 +246,7 @@ const mechanicRules = [
 ];
 
 const skills = [];
+const themeElements = ['fire', 'ice', 'electric', 'wind', 'water', 'earth', 'light', 'shadow', 'spirit', 'physical', 'spirit', 'fire', 'light', 'nature', 'spirit', 'spirit'];
 for (const packId of ['human', 'fantasy']) {
   forms[packId].forEach(([theme, base], themeIndex) => {
     patterns.forEach(([suffix, kind, config], patternIndex) => {
@@ -253,7 +255,8 @@ for (const packId of ['human', 'fantasy']) {
       skills.push(Object.freeze({
         id: `${packId}-${themeIndex}-${patternIndex}`, packId, name,
         description: `${descriptions[kind]}${statusName}。${config.status ? `${STATUS_HELP[config.status]}；持续${STATUSES[config.status].duration}次行动${config.chance ? `，附加率${Math.round(config.chance * 100)}%` : ''}。` : ''}${(config.mechanics || []).map(id => MECHANICS[id]).join('；')}`,
-        theme, kind, ...config,
+        theme, kind, ...config, power: config.power ? Math.round(config.power * 70) : 0,
+        element: packId === 'human' ? 'physical' : themeElements[themeIndex],
       }));
     });
   });
@@ -267,7 +270,7 @@ export function generationEffectCatalog(packId = 'human') {
   if (!getPack(packId)) throw new RangeError(`Unknown fixed pack: ${packId}`);
   return Object.freeze(SKILLS.filter(skill => skill.packId === packId && skill.id.startsWith(`${packId}-0-`)
     && skill.id !== BASIC_SKILL_ID[packId]).map(skill => Object.freeze({
-    baseId: skill.id, name: skill.name, kind: skill.kind, description: skill.description,
+    baseId: skill.id, name: skill.name, kind: skill.kind, description: skill.description, power: skill.power,
     ...(skill.status ? { status: skill.status } : {}), ...(skill.mechanics?.length ? { mechanics: skill.mechanics } : {}),
   })));
 }
@@ -334,6 +337,8 @@ export function resolveSkill(input, packId = 'human') {
   const fallbackPattern = basicAction ? 0 : 1;
   const preset = exact?.packId === packId ? exact : byId.get(`${packId}-${themeIndex}-${matched?.[1] ?? fallbackPattern}`);
   const offensive = ['damage', 'damageStatus', 'areaDamage', 'lifeDrain', 'resourceDrain'].includes(preset.kind);
+  const power = offensive && Number.isInteger(requested.power) && requested.power >= 20 && requested.power <= 140 ? requested.power : preset.power;
+  const element = validElement(requested.element) ? requested.element : preset.element;
   const compiled = !!exact && Array.isArray(requested.mechanics);
   const provided = Array.isArray(requested.mechanics) ? requested.mechanics.slice(0, 20) : [];
   const mechanics = [...new Set([...(preset.mechanics || []), ...provided, ...(compiled ? [] : mechanicRules.filter(([, rule]) => rule.test(story)).map(([key]) => key))])].filter(key => Object.hasOwn(MECHANICS, key) && (offensive || ['first', 'cleanseSelf', 'healSelf', 'counter', 'shieldSelf'].includes(key))).sort();
@@ -348,16 +353,16 @@ export function resolveSkill(input, packId = 'human') {
   const recognized = compiled && requested.mappingKnown === false ? false : !!exact || !!matched || basicName;
   if (!recognized && !mechanics.length && !extraStatuses.length) notes.push('效果未识别，暂用限次特殊攻击效果；可补充技能说明后保存');
   const added = mechanics.filter(key => !(preset.mechanics || []).includes(key));
-  const signature = JSON.stringify([mechanics, extraStatuses, !recognized && !basicAction ? text : '']);
+  const signature = JSON.stringify([mechanics, extraStatuses, power, element, !recognized && !basicAction ? text : '']);
   let hash = 2166136261;
   for (const ch of signature) hash = Math.imul(hash ^ ch.charCodeAt(0), 16777619) >>> 0;
-  const variant = added.length || extraStatuses.length || (!recognized && !basicAction);
+  const variant = added.length || extraStatuses.length || (!recognized && !basicAction) || power !== preset.power || element !== preset.element;
   const labels = added.map(key => MECHANICS[key]);
   labels.push(...extraStatuses.map(key => `额外附加${STATUSES[key].name}：${STATUS_HELP[key]}（附加率${STATUSES[key].kind === 'control' ? 50 : 70}%）`));
   return { ...preset, baseId: preset.id, id: variant ? `${preset.id}~${hash.toString(36)}` : preset.id,
     displayName: text && text !== requested.id && text !== preset.id ? text : preset.name,
-    mechanics, extraStatuses, sourceDescription: sourceDescription.slice(0, 160), recognized: recognized || mechanics.length > 0 || extraStatuses.length > 0, notes,
-    description: [preset.description, ...labels, ...notes].join('；').slice(0, 1300),
+    mechanics, extraStatuses, power, element, sourceDescription: sourceDescription.slice(0, 160), recognized: recognized || mechanics.length > 0 || extraStatuses.length > 0, notes,
+    description: [offensive ? `${elementName(element)}属性 · 威力${power}` : `${elementName(element)}属性 · 辅助（无直接伤害）`, preset.description, ...labels, ...notes].join('；').slice(0, 1300),
     cost: variant ? Math.min(30, Math.max(8, preset.cost + added.length * 3 + extraStatuses.length * 3)) : preset.cost,
     cooldown: variant ? Math.max(preset.cooldown, added.length + extraStatuses.length >= 3 ? 2 : 1) : preset.cooldown,
     uses: variant ? Math.min(preset.uses, 6) : preset.uses };

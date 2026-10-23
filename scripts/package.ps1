@@ -3,13 +3,15 @@ $ErrorActionPreference = 'Stop'
 $workspacePath = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $manifest = Get-Content -Raw -Encoding UTF8 -LiteralPath (Join-Path $workspacePath 'package.json') | ConvertFrom-Json
 if ($manifest.name -ne 'dsh-tavern-game') { throw 'Unexpected package identity.' }
+& node (Join-Path $PSScriptRoot 'integrity.mjs')
+if ($LASTEXITCODE -ne 0) { throw 'Runtime integrity generation failed.' }
 $distPath = Join-Path $workspacePath 'dist'
 New-Item -ItemType Directory -Path $distPath -Force | Out-Null
 $stagePath = Join-Path $distPath ('.stage-' + [Guid]::NewGuid().ToString('N'))
 $pluginPath = Join-Path $stagePath $manifest.name
 New-Item -ItemType Directory -Path $pluginPath -Force | Out-Null
 try {
-    foreach ($entry in @('package.json','index.mjs','client.js','README.md','LICENSE')) {
+    foreach ($entry in @('package.json','index.mjs','client.js','README.md','LICENSE','update-integrity.json')) {
         Copy-Item -LiteralPath (Join-Path $workspacePath $entry) -Destination $pluginPath
     }
     $simpleTarget = Join-Path $pluginPath 'simple'
@@ -18,10 +20,10 @@ try {
     Copy-Item -LiteralPath (Join-Path $workspacePath 'assets') -Destination $pluginPath -Recurse
     $archivePath = Join-Path $distPath ($manifest.name + '-' + $manifest.version + '.zip')
     Compress-Archive -LiteralPath $pluginPath -DestinationPath $archivePath -Force
-    foreach ($entry in @('docs','test-simple','tools','scripts')) {
+    foreach ($entry in @('docs','test-simple','tools','scripts','skills')) {
         if (Test-Path -LiteralPath (Join-Path $workspacePath $entry)) { Copy-Item -LiteralPath (Join-Path $workspacePath $entry) -Destination $pluginPath -Recurse }
     }
-    foreach ($entry in @('HANDOFF.md','AGENTS.md','plan.md','.gitignore')) {
+    foreach ($entry in @('HANDOFF.md','AGENTS.md','plan.md','.gitignore','.gitattributes')) {
         if (Test-Path -LiteralPath (Join-Path $workspacePath $entry)) { Copy-Item -LiteralPath (Join-Path $workspacePath $entry) -Destination $pluginPath }
     }
     $sourceArchivePath = Join-Path $distPath ($manifest.name + '-' + $manifest.version + '-source.zip')

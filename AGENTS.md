@@ -1,5 +1,8 @@
 # Fixed-pack battle plugin
 
+- Public version 0.1.1 adds actor.types (1–2 whitelisted types), per-skill power and element. Keep attack power integer20–140, support0; neutral legacy defaults, bounded matchup0.25–4 and same-type1.2. Persist metadata through generation, imports, MVU and timeline changes. There are60 built-in looks and5 scenes.
+- Release integrity hashes exact bytes. Run packaging after final runtime/assets/README edits and commit update-integrity.json with .gitattributes runtime -text rules. Validate the GitHub tarball before publishing a Release. Updater/installer operations must stage complete trees, retain host guards/local data, and keep five complete non-nested snapshots; incomplete recovery copies do not consume retention slots.
+
 Current user direction (2026-10-21) replaces the former universal-card adaptation plan.
 
 - Exactly two shipped built-in packs; user-authored declarative JSON imports are allowed: human and fantasy. One main AI action generates existing teammates, their skills and backpack from enabled public sources. Default context/MVU, six history rounds; advanced worldbook/ledger are opt-in. Story enemies come from story markers; explicit manual battle input may use one bounded parsing request.

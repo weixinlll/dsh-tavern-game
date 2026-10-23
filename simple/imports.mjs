@@ -1,19 +1,29 @@
 // Authorable data only: imported packs select bounded mechanics; they never execute code.
-import { getPack, MECHANICS } from './catalog.mjs';
+import { getPack, MECHANICS, GENERATION_EXTRA_STATUS_IDS, resolveSkill } from './catalog.mjs';
 import { validDefaultAvatarId } from './looks.mjs';
+import { validElement, validTypes } from './elements.mjs';
 
 const fail = message => { throw Object.assign(new Error(message), { code: 'INVALID_PACK' }); };
 const text = (value, limit = 80) => typeof value === 'string' ? value.trim().slice(0, limit) : '';
 const object = value => value && typeof value === 'object' && !Array.isArray(value);
-function skill(value) {
+function skill(value, packId = 'human') {
   if (typeof value === 'string') return text(value, 60);
   if (!object(value) || !text(value.name)) fail('技能需要名称。');
   if (value.mechanics && (!Array.isArray(value.mechanics) || value.mechanics.some(key => !Object.hasOwn(MECHANICS, key)))) fail('技能含未知机制标签，请使用模板中的标签。');
+  if (value.element !== undefined && !validElement(value.element)) fail('技能属性不在内置属性目录中。');
+  if (value.extraStatuses !== undefined && (!Array.isArray(value.extraStatuses) || value.extraStatuses.length > 2 || new Set(value.extraStatuses).size !== value.extraStatuses.length || value.extraStatuses.some(id => !GENERATION_EXTRA_STATUS_IDS.includes(id)))) fail('额外状态最多2种，且必须来自内置负面状态目录。');
+  if (value.power !== undefined && (!Number.isInteger(value.power) || value.power < 0 || value.power > 140 || (value.power > 0 && value.power < 20))) fail('技能威力须为20—140整数，辅助技能为0。');
+  if (value.power !== undefined) {
+    const offensive = ['damage', 'damageStatus', 'areaDamage', 'lifeDrain', 'resourceDrain'].includes(resolveSkill(value, packId).kind);
+    if (offensive ? value.power === 0 : value.power !== 0) fail('攻击技能威力为20—140，辅助技能为0。');
+  }
   return { name: text(value.name, 60), description: text(value.description, 400),
+    ...(value.power !== undefined ? { power: value.power } : {}), ...(value.element !== undefined ? { element: value.element } : {}),
+    ...(value.extraStatuses !== undefined ? { extraStatuses: [...value.extraStatuses] } : {}),
     ...(typeof value.baseId === 'string' ? { baseId: text(value.baseId) } : {}),
     ...(Array.isArray(value.mechanics) ? { mechanics: [...new Set(value.mechanics)].slice(0, 16) } : {}) };
 }
-function actors(value, field) {
+function actors(value, field, packId) {
   if (value === undefined) return [];
   if (!Array.isArray(value) || value.length > 6) fail(`${field}最多6人。`);
   const names = new Set();
@@ -23,7 +33,9 @@ function actors(value, field) {
     if (names.has(name)) fail(`${field}的姓名重复。`);
     names.add(name);
     if (actor.skills && (!Array.isArray(actor.skills) || actor.skills.length > 4)) fail('每人最多4个技能。');
-    const result = { name, skills: (actor.skills || []).map(skill) };
+    const result = { name, skills: (actor.skills || []).map(value => skill(value, packId)) };
+    if (actor.types !== undefined && !validTypes(actor.types)) fail(`${name}需要1—2个不重复的内置属性ID。`);
+    if (actor.types !== undefined) result.types = [...actor.types];
     for (const key of ['level', 'hp', 'maxHp', 'attack', 'defense', 'speed', 'resource', 'maxResource']) {
       if (actor[key] === undefined) continue;
       if (typeof actor[key] !== 'number' || !Number.isFinite(actor[key]) || actor[key] < 0 || actor[key] > 1e9) fail(`${name}的${key}数值无效。`);
@@ -51,7 +63,7 @@ export function parseImportedPack(input) {
     description: text(input.description, 200), items: Array.isArray(input.items) ? input.items.slice(0, 3).map(item => {
       if (!object(item) || !['healing-potion', 'resource-potion', 'cleanse'].includes(item.id) || !Number.isInteger(item.count) || item.count < 0 || item.count > (item.id === 'healing-potion' ? 2 : 1)) fail('道具只支持模板中的治疗/资源/净化药，每场数量有限。');
       return { id: item.id, count: item.count };
-    }) : [], party: actors(input.party, '队友'), opponents: actors(input.opponents, '敌人'), skillAliases: aliases.map(skill) };
+    }) : [], party: actors(input.party, '队友', input.basePack), opponents: actors(input.opponents, '敌人', input.basePack), skillAliases: aliases.map(value => skill(value, input.basePack)) };
   if (Buffer.byteLength(JSON.stringify(pack), 'utf8') > 12 * 1024) fail('整理后的玩法定义超过12KB，请缩短说明或拆成多个包；图片音乐请用单独导入。');
   return pack;
 }
@@ -61,6 +73,11 @@ export function applySkillAliases(party, importedPack) {
   return party.map(actor => ({ ...actor, skills: (actor.skills || []).map(value => {
     const name = typeof value === 'string' ? value : value?.name;
     const alias = aliases.find(item => typeof item !== 'string' && item.name === name);
-    return alias ? { ...(typeof value === 'string' ? { name } : value), ...alias } : value;
+    if (!alias) return value;
+    const merged = { ...(typeof value === 'string' ? { name } : value), ...alias };
+    // An alias can turn an attack into a ward or a heal. Reconcile inherited
+    // metadata with that final profile rather than retain positive support power.
+    if (merged.power !== undefined) merged.power = resolveSkill(merged, importedPack.basePack || 'human').power;
+    return merged;
   }) }));
 }

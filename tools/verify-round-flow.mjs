@@ -1,10 +1,10 @@
 // Real browser interactions against a local, deterministic model fixture only.
-import { chromium } from 'file:///C:/Users/30625/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs';
+import { chromium } from './browser-runtime.mjs';
 import { spawn } from 'node:child_process';
 import { createInterface } from 'node:readline';
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-const root = process.cwd(), output = path.join(root, 'review/sprite-battle-0.8.9');
+const root = process.cwd(), output = path.join(root, 'review/battle-0.1.1');
 await mkdir(output, { recursive: true });
 const server = spawn(process.execPath, ['tools/browser-dev-server.mjs'], { cwd: root, env: { ...process.env, PORT: '0' }, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
 let browser;

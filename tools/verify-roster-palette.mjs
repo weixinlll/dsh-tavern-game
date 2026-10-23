@@ -1,13 +1,12 @@
-import { chromium } from 'file:///C:/Users/30625/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs';
+import { chromium } from './browser-runtime.mjs';
 import { spawn } from 'node:child_process';
 import { createInterface } from 'node:readline';
 import { mkdir, writeFile } from 'node:fs/promises';
-import { randomBytes } from 'node:crypto';
 import path from 'node:path';
 import { DEFAULT_AVATARS } from '../simple/looks.mjs';
 
 const root = process.cwd();
-const outputDir = path.join(root, 'review', 'palette-0.8.8');
+const outputDir = path.join(root, 'review', 'palette-0.1.1');
 await mkdir(outputDir, { recursive: true });
 const LEGACY_STARTER_ASSETS = [
   { id: 'starter-male-portrait', category: 'human', src: '/assets/human/sprite/adventurer-male-v2.png' },
@@ -80,18 +79,37 @@ try {
     return { seeds:64, distinctColors:colors.size, hueBinsOf12:hues.size, maximumSaturation:Math.max(...saturations) };
   });
 
+  const hairProbe = await page.evaluate(async () => {
+    const canvas = document.createElement('canvas'); canvas.width = canvas.height = 512;
+    const context = canvas.getContext('2d');
+    for (let cell = 0; cell < 16; cell++) {
+      const x = cell % 4 * 128, y = Math.floor(cell / 4) * 128;
+      context.fillStyle = 'rgb(58,60,65)'; context.fillRect(x + 48, y + 20, 32, 22);
+      context.fillStyle = 'rgb(245,170,145)'; context.fillRect(x + 52, y + 42, 24, 18);
+      context.fillStyle = 'rgb(35,105,200)'; context.fillRect(x + 40, y + 60, 48, 60);
+    }
+    const source = canvas.toDataURL(), hair = new Set(), clothes = new Set(), pairs = new Set();
+    for (let index = 0; index < 16; index++) {
+      const url = await window.__DSH_BATTLE_PALETTE_TEST_EXPORT__(source, Math.imul(index + 1, 2654435761) >>> 0, 'human');
+      try {
+        const image = new Image(); image.src = url; await image.decode(); context.clearRect(0,0,512,512); context.drawImage(image,0,0);
+        const pixel = (x,y) => [...context.getImageData(x,y,1,1).data].join(',');
+        if (pixel(448,48) !== '245,170,145,255') throw Error('hair channel recolored face');
+        if (pixel(448,24) === '58,60,65,255') throw Error('hair channel failed to vary neutral hair');
+        hair.add(pixel(448,24)); clothes.add(pixel(448,70)); pairs.add(`${pixel(448,24)}|${pixel(448,70)}`);
+      } finally { URL.revokeObjectURL(url); }
+    }
+    if (hair.size < 14 || clothes.size < 14 || pairs.size !== 16) throw Error('independent hair/clothing channels lack diversity');
+    return { seeds:16, hairColors:hair.size, clothingColors:clothes.size, independentPairs:pairs.size, facePreserved:true };
+  });
+
   const avatars = [
     ...Object.entries(DEFAULT_AVATARS).map(([id, avatar]) => ({ id, category: avatar.category, src: `/assets/${avatar.src}` })),
     ...LEGACY_STARTER_ASSETS,
   ];
-  const seedBytes = randomBytes(avatars.length * 8);
-  const seeds = Array.from({ length: avatars.length }, (_, index) => [
-    seedBytes.readUInt32LE(index * 8),
-    seedBytes.readUInt32LE(index * 8 + 4),
-  ]);
-  for (let index = 0; index < seeds.length; index++) {
-    if (seeds[index][0] === seeds[index][1]) seeds[index][1] = (seeds[index][1] + 1) >>> 0;
-  }
+  // Reproducible extremes plus unrelated seeds make any failure repeatable.
+  const seeds = Array.from({ length: avatars.length }, (_, index) => [0, 0xffff_ffff,
+    Math.imul(index + 1, 2654435761) >>> 0, Math.imul(index + 19, 2246822519) >>> 0, 1579, 0x73ab12f0]);
 
   const rows = await page.evaluate(async ({ avatars, seeds }) => {
     const recolor = window.__DSH_BATTLE_PALETTE_TEST_EXPORT__;
@@ -135,6 +153,7 @@ try {
         const sameSize = [paletteA, repeatedA, paletteB].every(image => image.width === original.width && image.height === original.height);
         let visible = 0, changedFromSource = 0, changedAcrossSeeds = 0, changedOnRepeat = 0, standingVisible = 0, standingChanged = 0, standingSeedChanged = 0;
         let alphaMismatches = 0, protectedHumanoidPixels = 0, modifiedProtectedPixels = 0, confidentGarmentPixels = 0;
+        const protectedIndexes = [];
         const source = original.pixels, a = paletteA.pixels, repeat = repeatedA.pixels, b = paletteB.pixels;
         for (let pixel = 0; pixel < source.length; pixel += 4) {
           if (source[pixel + 3] !== a[pixel + 3] || source[pixel + 3] !== b[pixel + 3]) alphaMismatches++;
@@ -157,12 +176,27 @@ try {
             const skin = hue >= 10 && hue <= 55 && red > green && green > blue && saturation >= .16 && saturation <= .70 && lightness >= .22 && lightness <= .91;
             if (skin) {
               protectedHumanoidPixels++;
+              protectedIndexes.push(pixel);
               if (source[pixel] !== a[pixel] || source[pixel + 1] !== a[pixel + 1] || source[pixel + 2] !== a[pixel + 2]) modifiedProtectedPixels++;
             }
           }
         }
         const sourceChangeRatio = visible ? changedFromSource / visible : 0;
         const seedDifferenceRatio = visible ? changedAcrossSeeds / visible : 0;
+        const extraSeedChecks = [];
+        for (const seed of seeds[index].slice(2)) {
+          const url = await recolor(avatar.src, seed, avatar.category);
+          try {
+            const variant = await loadPixels(url), data = variant.pixels;
+            let alphaErrors = 0, changed = 0, skinErrors = 0;
+            for (let pixel = 0; pixel < source.length; pixel += 4) {
+              if (source[pixel + 3] !== data[pixel + 3]) alphaErrors++;
+              if (source[pixel + 3] >= 16 && (source[pixel] !== data[pixel] || source[pixel+1] !== data[pixel+1] || source[pixel+2] !== data[pixel+2])) changed++;
+            }
+            for (const pixel of protectedIndexes) if (source[pixel] !== data[pixel] || source[pixel+1] !== data[pixel+1] || source[pixel+2] !== data[pixel+2]) skinErrors++;
+            extraSeedChecks.push({ seed, changedRatio: changed / visible, alphaErrors, skinErrors, passed: alphaErrors === 0 && skinErrors === 0 && changed / visible >= .01 });
+          } finally { URL.revokeObjectURL(url); }
+        }
         const checks = {
           decoded: original.width > 0 && original.height > 0,
           dimensions: sameSize,
@@ -175,12 +209,13 @@ try {
           standingPoseVisiblyChanges: standingVisible > 0 && standingChanged / standingVisible >= .01 && standingSeedChanged / standingVisible >= .01,
           sameSeedIsDeterministic: changedOnRepeat === 0,
           humanSkinPreserved: avatar.category !== 'human' || protectedHumanoidPixels === 0 || modifiedProtectedPixels === 0,
+          widerSeedRange: extraSeedChecks.every(check => check.passed),
         };
         const failed = Object.entries(checks).filter(([, passed]) => !passed).map(([name]) => name);
         if (failed.length) failures.push({ id: avatar.id, failed, sourceChangeRatio, seedDifferenceRatio, standingChangedRatio: standingChanged / standingVisible, standingSeedChangedRatio: standingSeedChanged / standingVisible, changedOnRepeat, alphaMismatches, protectedHumanoidPixels, modifiedProtectedPixels, dimensions: [original.width, original.height] });
         results.push({ id: avatar.id, category: avatar.category, width: original.width, height: original.height, visiblePixels: visible,
           changedRatio: Number(sourceChangeRatio.toFixed(4)), differentSeedRatio: Number(seedDifferenceRatio.toFixed(4)),
-          alphaMismatches, sameSeedDiffPixels: changedOnRepeat, skinPixelsChecked: protectedHumanoidPixels, modifiedSkinPixels: modifiedProtectedPixels, standingChangedRatio: standingChanged / standingVisible, standingSeedChangedRatio: standingSeedChanged / standingVisible, confidentGarmentPixels, checks });
+          alphaMismatches, sameSeedDiffPixels: changedOnRepeat, skinPixelsChecked: protectedHumanoidPixels, modifiedSkinPixels: modifiedProtectedPixels, standingChangedRatio: standingChanged / standingVisible, standingSeedChangedRatio: standingSeedChanged / standingVisible, confidentGarmentPixels, extraSeedChecks, checks });
       } finally {
         URL.revokeObjectURL(urlA);
         URL.revokeObjectURL(urlRepeat);
@@ -238,7 +273,7 @@ try {
     return { count: group.length, minimumChangedRatio: Math.min(...group.map(row => row.changedRatio)),
       minimumDifferentSeedRatio: Math.min(...group.map(row => row.differentSeedRatio)), meanChangedRatio: mean('changedRatio'), meanDifferentSeedRatio: mean('differentSeedRatio') };
   };
-  const report = { passed: true, total: rows.results.length, skinProbe, varietyProbe, conservativeWarmOrNeutralLooks: rows.results.filter(row => row.category === 'human' && row.changedRatio < .01).map(row => row.id), human: summarize('human'), animal: summarize('animal'), rows: rows.results };
+  const report = { passed: true, total: rows.results.length, seedsPerImage:6, skinProbe, varietyProbe, hairProbe, conservativeWarmOrNeutralLooks: rows.results.filter(row => row.category === 'human' && row.changedRatio < .01).map(row => row.id), human: summarize('human'), animal: summarize('animal'), rows: rows.results };
   await writeFile(path.join(outputDir, 'palette-validation.json'), JSON.stringify(report, null, 2));
   console.log(JSON.stringify({ passed: report.passed, total: report.total, human: report.human, animal: report.animal, reportPath: path.join(outputDir, 'palette-validation.json') }, null, 2));
 } finally {

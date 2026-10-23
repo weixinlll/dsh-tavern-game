@@ -5,6 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { apply } from '../index.mjs';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const packageInfo = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'));
 const modulesRoot = process.env.DSH_TEST_NODE_MODULES || path.join(process.env.USERPROFILE || '', '.dsh/apps/dsh-tavern/node_modules');
 const routes = new Map(), callbacks = {}, turns = new Map(), records = new Map(), modelCalls = [];
 let revision = 0;
@@ -31,6 +32,11 @@ const T = {
   onTurnSettled: fn => { callbacks.settled = fn; }, onTimelineChanged: fn => { callbacks.timeline = fn; },
   backgroundModel: async () => ({ provider: 'local-fixture', model: 'structured-reply' }), runTask: async () => { throw Error('隔离预览禁止调用真实模型'); },
 };
+const fixtureSkill = (name, baseId, power, element = 'physical') => ({ name, baseId, power, element, extraStatuses: [], mechanics: [] });
+const fixtureActor = (name, gender, avatarId, types, skills, hp, maxHp, attack, defense, speed) => ({
+  name, gender, avatarId, kind: 'human', types, hp, maxHp, attack, defense, speed,
+  skills,
+});
 // This is a deterministic local fixture, never a provider request or a claim of live AI generation.
 const fixtureLlm = {
   listProviders: () => [{ id: 'local-fixture', name: '固定回复（仅隔离演练）' }],
@@ -39,18 +45,39 @@ const fixtureLlm = {
   prepareCall: async config => ({ config, stream: async function* (options) {
     const prompt = options.messages[0].content[0].text;
     modelCalls.push({ provider: options.provider, model: options.model, maxTokens: options.maxTokens, prompt });
-    const output = prompt.startsWith('你要概括一场已经结束') ? (() => {
+    let output;
+    if (prompt.startsWith('你要概括一场已经结束')) {
       const facts = JSON.parse(prompt.match(/<实战记录>\s*([\s\S]*?)\s*<\/实战记录>/)[1]);
-      return { winner: facts.outcome.winner, rounds: facts.rounds, summary: '演练队伍与对手完成交锋，随后撤离战场。双方状态以实战记录为准。' };
-    })() : prompt.startsWith('玩家明确要求按以下输入手动开战') ? prompt.includes('<玩家开战描述>\n遇到三个动物\n') ? { enemies: [
-      { name: '灰狼', kind: 'animal', species: '狼', avatarId: 'silver-wolf', skills: [{ name: '扑咬', description: '普通近战攻击' }] },
-      { name: '赤狐', kind: 'animal', species: '狐狸', avatarId: 'ember-fox', skills: [{ name: '爪击', description: '普通近战攻击' }] },
-      { name: '乌鸦', kind: 'animal', species: '乌鸦', avatarId: 'raven-scout', skills: [{ name: '啄击', description: '普通近战攻击' }] },
-    ] } : { enemies: [{ name: '演练山贼', gender: 'male', avatarId: 'iron-guardian', skills: [{ name: '挥剑', description: '普通近战攻击' }] }] }
-      : prompt.includes('只设计一个角色草稿') ? { actor: { name: '演练主角', hp: 138, maxHp: 160, attack: 20, defense: 8, speed: 50, skills: [{ name: '快拳', description: '先攻攻击' }, { name: '格挡', description: '防御' }] } }
-      : { party: [{ name: '演练主角', gender: 'male', hp: 138, maxHp: 160, attack: 20, defense: 8, speed: 50, skills: [{ name: '直拳', description: '普通攻击' }, { name: '烟幕', description: '攻击并致盲' }] },
-          { name: '演练同伴', gender: 'female', hp: 112, maxHp: 130, attack: 17, defense: 6, speed: 55, skills: [{ name: '快剑', description: '先手攻击' }, { name: '疗伤', description: '恢复生命' }] }],
-          items: [{ name: '疗伤药', description: 'AI补全的演练药品（本地固定回复）', count: 1 }, { name: '旧钥匙', description: '演练非战斗物品', count: 1 }] };
+      output = { winner: facts.outcome.winner, rounds: facts.rounds, summary: '演练队伍与对手完成交锋，随后撤离战场。双方状态以实战记录为准。' };
+    } else if (prompt.startsWith('玩家明确要求按以下输入手动开战')) {
+      const animal = prompt.includes('遇到三个动物');
+      const opponents = animal ? [
+        { name: '灰狼', species: '狼', avatarId: 'silver-wolf', types: ['nature'], baseId: 'human-0-1' },
+        { name: '赤狐', species: '狐狸', avatarId: 'ember-fox', types: ['fire'], baseId: 'human-0-3' },
+        { name: '乌鸦', species: '乌鸦', avatarId: 'raven-scout', types: ['wind'], baseId: 'human-0-2' },
+      ] : [{ name: '演练山贼', avatarId: 'iron-guardian', types: ['physical'], baseId: 'human-0-1' }];
+      output = { enemies: opponents.map((opponent, index) => ({ ...opponent, kind: animal ? 'animal' : 'human', ...(animal ? {} : { gender: 'male' }),
+        skills: [fixtureSkill(['扑咬', '爪击', '啄击', '挥剑'][index] || '攻击', opponent.baseId, 68 + index * 3)] })) };
+    } else if (prompt.includes('只设计一个角色草稿')) {
+      output = { actor: fixtureActor('演练主角', 'male', 'jade-swordsman', ['physical', 'fire'], [
+        fixtureSkill('快拳', 'human-0-1', 76), fixtureSkill('致盲拳', 'human-0-4', 55),
+        fixtureSkill('格挡', 'human-0-12', 0, 'neutral'), fixtureSkill('疗伤', 'human-0-17', 0, 'neutral'),
+      ], 138, 160, 20, 8, 50) };
+    } else {
+      output = { party: [
+        fixtureActor('演练主角', 'male', 'jade-swordsman', ['physical', 'fire'], [
+          fixtureSkill('直拳', 'human-0-1', 76), fixtureSkill('致盲烟幕', 'human-0-4', 54),
+          fixtureSkill('护体', 'human-0-13', 0, 'neutral'), fixtureSkill('凝神', 'human-0-14', 0, 'neutral'),
+        ], 138, 160, 20, 8, 50),
+        fixtureActor('演练同伴', 'female', 'jade-lancer', ['physical', 'water'], [
+          fixtureSkill('快剑', 'human-0-3', 82), fixtureSkill('剑斩', 'human-0-2', 58),
+          fixtureSkill('疗伤', 'human-0-17', 0, 'neutral'), fixtureSkill('净化', 'human-0-18', 0, 'neutral'),
+        ], 112, 130, 17, 6, 55),
+      ], items: [
+        { id: 'healing-potion', name: '疗伤药', description: 'AI补全的演练药品（本地固定回复）', count: 1 },
+        { name: '旧钥匙', description: '演练非战斗物品', count: 1 },
+      ] };
+    }
     yield { type: 'text-delta', text: JSON.stringify(output) }; yield { type: 'finish', reason: { kind: 'stop' } };
   } }),
 };
@@ -82,7 +109,7 @@ const server = http.createServer(async (req, res) => {
   try {
     const url = new URL(req.url, 'http://localhost');
     const sendJson = (value, status = 200) => { res.writeHead(status, { 'content-type': 'application/json; charset=utf-8' }); res.end(JSON.stringify(value)); };
-    if (url.pathname === '/health') return sendJson({ app: 'dsh-tavern-game-simple', version: 32, build: '0.8.9', pid: process.pid });
+    if (url.pathname === '/health') return sendJson({ app: 'dsh-tavern-game-simple', version: 32, build: packageInfo.version, pid: process.pid });
     if (url.pathname === '/rpc' && req.method === 'POST') {
       let body = ''; for await (const chunk of req) { body += chunk; if (body.length > 256 * 1024) throw Error('请求过大'); }
       const { route, args } = JSON.parse(body), handler = routes.get(route);

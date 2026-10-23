@@ -4,3 +4,7 @@ dist/
 *.log
 .DS_Store
 .tmp-*.txt
+review/
+output/
+.update-backup/
+*.bak-*

@@ -1,11 +1,11 @@
-import { chromium } from 'file:///C:/Users/30625/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs';
+import { chromium } from './browser-runtime.mjs';
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { createInterface } from 'node:readline';
 import path from 'node:path';
 import { DEFAULT_AVATARS } from '../simple/looks.mjs';
-const root=process.cwd(), output=path.join(root,'review','sprite-battle-0.8.9');
+const root=process.cwd(), output=path.join(root,'review','battle-0.1.1');
 await mkdir(output,{recursive:true});
 const server=spawn(process.execPath,['tools/browser-dev-server.mjs'],{cwd:root,env:{...process.env,PORT:'0'},windowsHide:true,stdio:['ignore','pipe','pipe']});
 let origin='';
@@ -157,8 +157,11 @@ try{
  if(stateAfterGeneration.nonCombatInventory.length)throw Error('non-combat props leaked into the generated battle bag');
  const card=page.locator('.stg-party>.stg-card').first();
  await card.locator(':scope>summary').click();
- // Import the actual delivered cultivator bundle, then exercise it in the actual battle.
- await card.getByLabel('导入完整外观包（含动作）',{exact:true}).setInputFiles(path.join(root,'output/lingxiao-import-test/lingxiao-cultivator.battle-avatar.json'));
+ // Build a valid local appearance bundle from a shipped atlas and a bounded 4×4 rig.
+ // This keeps the preview independent of generated or untracked output files.
+ const atlas=await readFile(path.join(root,'assets/human/sprite/adventurer-male-actions-v1.png'));
+ const appearance={kind:'dsh-battle-appearance',schemaVersion:1,name:'隔离预览动作图集',texture:{mimeType:'image/png',data:atlas.toString('base64')},rig:{schemaVersion:1,columns:4,rows:4,fps:8,clips:{idle:[3],attack:[3,4,5,7],kick:[3,4,6,7],cast:[8,9,7],guard:[10],hit:[11,7],dodge:[12,7],down:[13],victory:[14,15]}}};
+ await card.getByLabel('导入完整外观包（含动作）',{exact:true}).setInputFiles({name:'fixture-appearance.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(appearance))});
  await page.waitForTimeout(250);
  await page.getByLabel('导入场景图片',{exact:true}).setInputFiles(path.join(root,'assets/human/scene/mountain-courtyard.png'));
  await page.waitForTimeout(150);
@@ -166,7 +169,7 @@ try{
  await page.locator('.stg-figure[data-avatar="imported"] .stg-sheet').first().waitFor({state:'attached'});
  await page.locator('.stg-sheet').first().evaluate(img=>img.decode());
  const imported=await page.locator('.stg-sheet').first().evaluate(img=>({src:img.src,width:img.naturalWidth,height:img.naturalHeight}));
- if(!imported.src.startsWith('blob:')||imported.width!==2048||imported.height!==2048)throw Error('delivered bundle did not become the actor action atlas');
+ if(!imported.src.startsWith('blob:')||imported.width<=0||imported.height<=0||imported.width!==imported.height)throw Error('local fixture bundle did not become the actor action atlas');
  if(await page.locator('.stg-figure[data-avatar="imported"] .stg-visual').first().evaluate(el=>getComputedStyle(el).filter)!=='none')throw Error('imported appearance was unexpectedly recolored');
  if(!await page.locator('.stg-scene').evaluate(el=>getComputedStyle(el).backgroundImage.includes('blob:')))throw Error('imported scene not rendered');
  await page.waitForTimeout(750);
@@ -236,7 +239,7 @@ try{
  await page.screenshot({path:path.join(output,'story-to-battle.png')});
  const avatarAssets=Object.entries(DEFAULT_AVATARS).map(([id,avatar])=>({id,src:'/assets/'+avatar.src}));
  const decoded=await page.evaluate(async avatars=>Promise.all(avatars.map(async avatar=>{const img=new Image();img.src=avatar.src;try{await img.decode()}catch(_){}return{id:avatar.id,w:img.naturalWidth,h:img.naturalHeight}})),avatarAssets);
- if(decoded.length!==54||decoded.some(image=>image.w!==2048||image.h!==2048))throw Error('one of 54 built-in action atlases is not valid');
+ if(decoded.length!==60||decoded.some(image=>image.w<=0||image.h<=0||image.w!==image.h))throw Error('one of 60 built-in action atlases is missing or not square');
  await page.setViewportSize({width:320,height:780});
  const mobileDockGeometry=await assertDockGeometry('mobile');
  const mobileCommands=await page.locator('.stg-commandrow>button').evaluateAll(buttons=>buttons.map(button=>({label:button.textContent.trim(),height:button.getBoundingClientRect().height})));

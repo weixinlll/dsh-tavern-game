@@ -22,9 +22,9 @@ const manifest = JSON.parse(readFileSync(join(root, 'assets/manifest.json'), 'ut
 for (const file of manifest.files) if (file.includes('..') || !existsSync(join(root, 'assets', file))) throw new Error(`Missing asset: ${file}`);
 const defaultAvatarPaths = Object.values(DEFAULT_AVATARS).map(avatar => avatar.src);
 const defaultAssets = manifest.files.filter(file => /^human\/sprite\/(?:defaults\/.*|adventurer-(?:male|female))-actions-v1\.png$/.test(file));
-if (Object.keys(DEFAULT_AVATARS).length !== 54) throw new Error(`Expected 54 built-in looks, got ${Object.keys(DEFAULT_AVATARS).length}`);
+if (Object.keys(DEFAULT_AVATARS).length !== 60) throw new Error(`Expected 60 built-in looks, got ${Object.keys(DEFAULT_AVATARS).length}`);
 for (const file of defaultAvatarPaths) if (!manifest.files.includes(file)) throw new Error(`Default look is not packaged: ${file}`);
-if (new Set(defaultAssets).size !== 54 || defaultAssets.length !== 54) throw new Error(`Expected exactly 54 packaged default look atlases, got ${defaultAssets.length}`);
+if (new Set(defaultAssets).size !== 60 || defaultAssets.length !== 60) throw new Error(`Expected exactly 60 packaged default look atlases, got ${defaultAssets.length}`);
 const api = await import(pathToFileURL(join(root, 'index.mjs')).href);
 if (api.name !== pkg.name || typeof api.apply !== 'function' || JSON.stringify(api.inject) !== '["tavern"]') throw new Error('Invalid host export');
 console.log(`Simple package valid: ${files.length} runtime files; ${manifest.files.length} assets; legacy source excluded.`);

@@ -1,7 +1,30 @@
-const avatar = (gender, id) => Object.freeze({ gender, category: 'human', src: `human/sprite/defaults/${id}-actions-v1.png` });
-const starterAvatar = gender => Object.freeze({ gender, category: 'human', src: `human/sprite/adventurer-${gender}-actions-v1.png` });
-const animal = id => Object.freeze({ gender: 'animal', category: 'animal', src: `human/sprite/defaults/${id}-actions-v1.png` });
-export const DEFAULT_AVATARS = Object.freeze({
+const avatar = (gender, id) => ({ gender, category: 'human', src: `human/sprite/defaults/${id}-actions-v1.png` });
+const starterAvatar = gender => ({ gender, category: 'human', src: `human/sprite/adventurer-${gender}-actions-v1.png` });
+const animal = id => ({ gender: 'animal', category: 'animal', src: `human/sprite/defaults/${id}-actions-v1.png` });
+// IDs and source filenames remain stable for saved actors; public labels describe
+// reusable archetypes rather than a named person or one particular color palette.
+const names = {
+  'starter-male': '徒手冒险者（男）', 'starter-female': '徒手冒险者（女）',
+  'jade-swordsman': '江湖剑客', 'crimson-duelist': '决斗剑士', 'frost-mage': '元素法师',
+  'iron-guardian': '重甲守卫', 'forest-ranger': '弓箭游侠', 'amber-monk': '武僧',
+  'moonlit-spear-guard': '长枪女卫', 'ember-gunslinger': '火枪手', 'azure-healer': '医师',
+  'mountain-exorcist': '驱邪道士', 'shadow-assassin': '暗影刺客', 'clockwork-knight': '机械骑士',
+  'storm-lancer': '重枪战士', 'desert-falconer': '猎鹰师', beastkeeper: '御兽师',
+  'star-oracle': '占星师', 'thunder-priest': '雷术道士', 'lingxiao-cultivator': '修仙剑修',
+  'dawn-paladin': '圣骑士', 'bamboo-alchemist': '炼丹师', 'dusk-ronin': '浪人武士',
+  'scarlet-sorceress': '女术士', 'frost-archer': '长弓手', 'lotus-dancer': '舞者',
+  'desert-sentinel': '沙漠守卫', 'violet-assassin': '双刃女刺客', 'scholar-swordsman': '书生剑客',
+  'sun-priestess': '祭司', 'obsidian-brawler': '甲胄斗士', 'jade-lancer': '长枪侠女',
+  'moon-elf-archer': '精灵弓手', 'dwarven-artificer': '矮人工匠', 'pirate-captain': '海盗船长',
+  'night-ninja': '忍者', 'vampire-duelist': '吸血鬼贵族', 'wandering-bard': '吟游诗人',
+  'silver-wolf': '狼', 'ember-fox': '狐狸', 'snow-tiger': '虎', 'raven-scout': '乌鸦',
+  'azure-eastern-dragon': '东方龙', 'western-dragon': '西方龙', qilin: '麒麟', xuanwu: '玄武',
+  'forest-fae': '妖精', phoenix: '凤凰', pegasus: '天马', griffin: '狮鹫', unicorn: '独角兽',
+  'nine-tail-fox': '九尾狐', thunderbird: '雷鸟', 'sea-serpent': '海蛇',
+  'desert-scorpion': '蝎子', 'wild-bear': '熊', 'savanna-lion': '狮子', 'giant-lizard': '蜥蜴',
+  'golden-staff-warrior': '神话棍战士', 'elder-staff-mage': '长杖老法师',
+};
+export const DEFAULT_AVATARS = Object.freeze(Object.fromEntries(Object.entries({
   'starter-male': starterAvatar('male'),
   'starter-female': starterAvatar('female'),
   'jade-swordsman': avatar('male', 'jade-swordsman'),
@@ -56,13 +79,18 @@ export const DEFAULT_AVATARS = Object.freeze({
   'nine-tail-fox': animal('nine-tail-fox'),
   thunderbird: animal('thunderbird'),
   'sea-serpent': animal('sea-serpent'),
-});
+  'desert-scorpion': animal('desert-scorpion'),
+  'wild-bear': animal('wild-bear'),
+  'savanna-lion': animal('savanna-lion'),
+  'giant-lizard': animal('giant-lizard'),
+  'golden-staff-warrior': avatar('male', 'golden-staff-warrior'),
+  'elder-staff-mage': avatar('male', 'elder-staff-mage'),
+}).map(([id, appearance]) => [id, Object.freeze({ ...appearance, name: names[id] })])));
 
 export const DEFAULT_AVATAR_IDS = Object.freeze(Object.keys(DEFAULT_AVATARS));
 
 export function avatarSelectionPrompt() {
-  const roles = ['徒手冒险者男', '徒手冒险者女', '青衣剑客', '红衣剑士', '冰法师', '重甲守卫', '弓箭游侠', '僧人', '长枪女卫', '火枪手', '医师', '道士', '暗影刺客', '机械骑士', '雷枪战士', '猎鹰师', '御兽师', '占星师', '雷术道士', '修仙剑修', '圣骑士', '炼丹师', '浪人武士', '红衣术士', '冰弓手', '舞者', '沙漠守卫', '女刺客', '书生剑客', '祭司', '黑甲战士', '玉甲枪客', '精灵弓手', '矮人工匠', '海盗', '忍者', '吸血鬼贵族', '吟游诗人', '狼', '狐狸', '白虎', '乌鸦', '东方龙', '西方龙', '麒麟', '玄武', '妖精', '凤凰', '天马', '狮鹫', '独角兽', '九尾狐', '雷鸟', '海蛇'];
-  return '外观由你按人物性别、物种、武器与职业选最匹配的avatarId，不按名字随机抽、不生成图片链接；不要把明确的人类选成动物。目录：' + DEFAULT_AVATAR_IDS.map((id, index) => `${id}=${roles[index]}(${DEFAULT_AVATARS[id].gender})`).join('；');
+  return '外观由你按人物性别、物种、武器与职业选最匹配的avatarId，不按名字随机抽、不生成图片链接；不要把明确的人类选成动物。外观名称只是可复用职业或物种，不是人物姓名，配色另行随机。目录：' + DEFAULT_AVATAR_IDS.map(id => `${id}=${DEFAULT_AVATARS[id].name}(${DEFAULT_AVATARS[id].gender})`).join('；');
 }
 
 export function validDefaultAvatarId(value) {
@@ -87,7 +115,7 @@ function hash(value) {
   return result >>> 0;
 }
 
-const ANIMAL_WORDS = /(?:狼|狐|虎|猫|犬|狗|豹|鸟|鸦|鹰|鹿|蛇|蜥|蜘蛛|蟒|狮|龟|熊猫|黑熊|白熊|熊妖|龙|麒麟|玄武|凤凰|天马|飞马|狮鹫|独角兽|灵狐|神鸟|雷鸟|海蛇|蛟龙|精灵|仙子|花妖|妖精|wolf|fox|tiger|raven|crow|eagle|bear|deer|snake|dragon|qilin|phoenix|pegasus|griffin|unicorn|thunderbird|fairy|fae|beast|animal|creature|pet|monster|灵兽|妖兽|宠物|野兽)/i;
+const ANIMAL_WORDS = /(?:狼|狐|虎|猫|犬|狗|豹|鸟|鸦|鹰|鹿|蛇|蜥|蝎|蜘蛛|蟒|狮|龟|熊|龙|麒麟|玄武|凤凰|天马|飞马|狮鹫|独角兽|灵狐|神鸟|雷鸟|海蛇|蛟龙|精灵|仙子|花妖|妖精|wolf|fox|tiger|raven|crow|eagle|bear|lion|lizard|scorpion|deer|snake|dragon|qilin|phoenix|pegasus|griffin|unicorn|thunderbird|fairy|fae|beast|animal|creature|pet|monster|灵兽|妖兽|宠物|野兽)/i;
 const ANIMAL_KIND = /^(?:animal|beast|creature|pet|monster|灵兽|妖兽|宠物|野兽|动物)$/i;
 const HUMAN_KIND = /^(?:human|person|humanoid|人类|人族|凡人|人形)$/i;
 const HUMAN_SPECIES = /^(?:human|person|humanoid|人类|人族|凡人|人形)$/i;
@@ -103,6 +131,8 @@ const SPECIES_AVATARS = [
   [/(?:森林精灵|萤森精灵|仙子|花妖|妖精|forest fae|fairy|fae)/i, 'forest-fae'],
   [/(?:狼|wolf)/i, 'silver-wolf'], [/(?:狐|fox)/i, 'ember-fox'],
   [/(?:虎|tiger)/i, 'snow-tiger'], [/(?:鸦|乌鸦|鸟|raven|crow|eagle)/i, 'raven-scout'],
+  [/(?:蝎|scorpion)/i, 'desert-scorpion'], [/(?:熊|bear)/i, 'wild-bear'],
+  [/(?:狮|lion)/i, 'savanna-lion'], [/(?:蜥|lizard)/i, 'giant-lizard'],
   [/(?:龙|dragon)/i, 'western-dragon'],
 ];
 
@@ -116,8 +146,8 @@ export function chooseDefaultAvatar({ id = '', name = '', gender, species = '', 
   const category = wantsAnimal ? 'animal' : 'human';
   if (wantsAnimal) {
     const specific = SPECIES_AVATARS.slice(0, 12);
-    const common = SPECIES_AVATARS.slice(12, 16);
-    const generic = SPECIES_AVATARS.slice(16);
+    const common = SPECIES_AVATARS.slice(12, -1);
+    const generic = SPECIES_AVATARS.slice(-1);
     const matchedSpecies = specific.find(([pattern]) => pattern.test(normalizedSpecies))
       || specific.find(([pattern]) => pattern.test(name))
       || common.find(([pattern]) => pattern.test(normalizedSpecies))

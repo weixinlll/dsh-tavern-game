@@ -75,7 +75,7 @@ test('legacy manual arguments stay injected; invalid counts, flags and active fi
 
 test('natural-language manual battle uses exactly one bounded model response and catalog-bound enemy skills', async () => {
   const fixture = host({ missingModel: false, result: { enemies: [
-    { name: '山贼头目', skills: [{ name: '毒刃', baseId: 'human-0-9' }] },
+    { name: '山贼头目', types: ['nature', 'physical'], skills: [{ name: '毒刃', baseId: 'human-0-9', power: 75, element: 'nature' }] },
     { name: '山贼', skills: [{ name: '挥剑', baseId: 'human-0-1' }] },
     { name: '山贼', skills: [{ name: '格挡', baseId: 'human-0-12' }] },
   ] } });
@@ -83,6 +83,9 @@ test('natural-language manual battle uses exactly one bounded model response and
   view = await fixture.call('manual-start', { ...ticket(view), battleText: '和三名山贼战斗，头目会毒刃', injectStory: false });
   assert.equal(view.battle.enemies.length, 3); assert.equal(view.battle.enemies[0].name, '山贼头目');
   assert(view.battle.enemies[0].skills.some(skill => skill.name === '毒刃'));
+  assert.deepEqual(view.battle.enemies[0].types, ['nature', 'physical']);
+  assert.equal(view.battle.enemies[0].skills[0].power, 75);
+  assert.equal(view.battle.enemies[0].skills[0].element, 'nature');
   assert.deepEqual(fixture.calls.tasks[0].tools, []); assert.equal(fixture.calls.tasks.length, 1); assert.equal(fixture.calls.sources, 1);
   assert.match(fixture.calls.tasks[0].prompt, /当下在山林小径/); assert(!fixture.calls.tasks[0].prompt.includes('MVU_NOT_REQUESTED')); assert.match(fixture.calls.tasks[0].prompt, /固定技能效果目录/); assert.equal(fixture.calls.saves, saves);
   assert.deepEqual(fixture.calls.history, [{ gameId: 'manual-fixture', from: 8, to: 9 }]);

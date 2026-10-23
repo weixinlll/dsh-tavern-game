@@ -1,13 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { chooseDefaultAvatar, chooseDefaultHue, DEFAULT_AVATARS, DEFAULT_AVATAR_IDS, normalizeGender, validDefaultAvatarId, validDefaultHue } from '../simple/looks.mjs';
+import { avatarSelectionPrompt, chooseDefaultAvatar, chooseDefaultHue, DEFAULT_AVATARS, DEFAULT_AVATAR_IDS, normalizeGender, validDefaultAvatarId, validDefaultHue } from '../simple/looks.mjs';
 import { createBattle, normalizeActor, snapshot } from '../simple/engine.mjs';
 import { extractMvuParty, encounterFromText } from '../simple/context.mjs';
 import { parseImportedPack } from '../simple/imports.mjs';
 
 test('default avatar selection is deterministic, gender-aware, and whitelisted', () => {
-  assert.equal(DEFAULT_AVATAR_IDS.length, 54);
-  assert.deepEqual(Object.keys(DEFAULT_AVATARS), ['starter-male', 'starter-female', 'jade-swordsman', 'crimson-duelist', 'frost-mage', 'iron-guardian', 'forest-ranger', 'amber-monk', 'moonlit-spear-guard', 'ember-gunslinger', 'azure-healer', 'mountain-exorcist', 'shadow-assassin', 'clockwork-knight', 'storm-lancer', 'desert-falconer', 'beastkeeper', 'star-oracle', 'thunder-priest', 'lingxiao-cultivator', 'dawn-paladin', 'bamboo-alchemist', 'dusk-ronin', 'scarlet-sorceress', 'frost-archer', 'lotus-dancer', 'desert-sentinel', 'violet-assassin', 'scholar-swordsman', 'sun-priestess', 'obsidian-brawler', 'jade-lancer', 'moon-elf-archer', 'dwarven-artificer', 'pirate-captain', 'night-ninja', 'vampire-duelist', 'wandering-bard', 'silver-wolf', 'ember-fox', 'snow-tiger', 'raven-scout', 'azure-eastern-dragon', 'western-dragon', 'qilin', 'xuanwu', 'forest-fae', 'phoenix', 'pegasus', 'griffin', 'unicorn', 'nine-tail-fox', 'thunderbird', 'sea-serpent']);
+  assert.equal(DEFAULT_AVATAR_IDS.length, 60);
+  assert.deepEqual(Object.keys(DEFAULT_AVATARS), ['starter-male', 'starter-female', 'jade-swordsman', 'crimson-duelist', 'frost-mage', 'iron-guardian', 'forest-ranger', 'amber-monk', 'moonlit-spear-guard', 'ember-gunslinger', 'azure-healer', 'mountain-exorcist', 'shadow-assassin', 'clockwork-knight', 'storm-lancer', 'desert-falconer', 'beastkeeper', 'star-oracle', 'thunder-priest', 'lingxiao-cultivator', 'dawn-paladin', 'bamboo-alchemist', 'dusk-ronin', 'scarlet-sorceress', 'frost-archer', 'lotus-dancer', 'desert-sentinel', 'violet-assassin', 'scholar-swordsman', 'sun-priestess', 'obsidian-brawler', 'jade-lancer', 'moon-elf-archer', 'dwarven-artificer', 'pirate-captain', 'night-ninja', 'vampire-duelist', 'wandering-bard', 'silver-wolf', 'ember-fox', 'snow-tiger', 'raven-scout', 'azure-eastern-dragon', 'western-dragon', 'qilin', 'xuanwu', 'forest-fae', 'phoenix', 'pegasus', 'griffin', 'unicorn', 'nine-tail-fox', 'thunderbird', 'sea-serpent', 'desert-scorpion', 'wild-bear', 'savanna-lion', 'giant-lizard', 'golden-staff-warrior', 'elder-staff-mage']);
   assert.equal(DEFAULT_AVATARS['starter-male'].src, 'human/sprite/adventurer-male-actions-v1.png');
   assert.equal(DEFAULT_AVATARS['starter-female'].src, 'human/sprite/adventurer-female-actions-v1.png');
   assert.equal(chooseDefaultAvatar({ id: 'p-1', name: '青' }), chooseDefaultAvatar({ id: 'p-1', name: '青' }));
@@ -26,6 +26,9 @@ test('default avatar selection is deterministic, gender-aware, and whitelisted',
   assert.equal(chooseDefaultAvatar({ id: 'pegasus', name: '坐骑', species: 'pegasus', kind: 'animal' }), 'pegasus');
   assert.equal(chooseDefaultAvatar({ id: 'fairy', name: '精灵', species: 'fairy' }), 'forest-fae');
   assert.equal(chooseDefaultAvatar({ id: 'specific-dragon', name: '东方龙君', species: 'dragon', kind: 'animal' }), 'azure-eastern-dragon');
+  for (const [species, avatarId] of [['蝎子', 'desert-scorpion'], ['scorpion', 'desert-scorpion'], ['熊', 'wild-bear'], ['bear', 'wild-bear'], ['狮子', 'savanna-lion'], ['lion', 'savanna-lion'], ['蜥蜴', 'giant-lizard'], ['lizard', 'giant-lizard']]) {
+    assert.equal(chooseDefaultAvatar({ id: 'new-animal', name: '灵兽', species, kind: 'animal' }), avatarId);
+  }
   assert.equal(DEFAULT_AVATARS[chooseDefaultAvatar({ id: 'elf-human', name: '月林精灵弓手', kind: 'human' })].category, 'human',
     'explicit humanoid elf remains eligible for human portraits');
   assert.equal(normalizeGender('女'), 'female');
@@ -45,6 +48,19 @@ test('default avatar selection is deterministic, gender-aware, and whitelisted',
     'zero degrees is a valid saved palette choice');
   assert.equal(normalizeActor({ id: 'bad-hue', name: '青', avatarHue: 999 }).avatarHue,
     chooseDefaultHue({ id: 'bad-hue', name: '青', avatarId: chooseDefaultAvatar({ id: 'bad-hue', name: '青' }) }), 'invalid hues are replaced with a stable default');
+});
+
+test('appearance catalog uses reusable role/species names while retaining saved source IDs', () => {
+  for (const appearance of Object.values(DEFAULT_AVATARS)) {
+    assert.equal(typeof appearance.name, 'string');
+    assert.ok(appearance.name.length > 0);
+    assert.ok(Object.isFrozen(appearance));
+  }
+  assert.equal(new Set(Object.values(DEFAULT_AVATARS).map(appearance => appearance.name)).size, DEFAULT_AVATAR_IDS.length);
+  assert.match(avatarSelectionPrompt(), /外观名称只是可复用职业或物种/);
+  assert.match(avatarSelectionPrompt(), /desert-scorpion=蝎子/);
+  assert.match(avatarSelectionPrompt(), /elder-staff-mage=长杖老法师/);
+  assert.equal(DEFAULT_AVATARS['jade-swordsman'].src, 'human/sprite/defaults/jade-swordsman-actions-v1.png');
 });
 
 test('renames and battle snapshots retain approved looks for both sides', () => {

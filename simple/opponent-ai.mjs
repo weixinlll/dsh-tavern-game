@@ -1,16 +1,18 @@
 // AI sees an observation, never the player's pending command or full character configuration.
 import { helperTextMessage } from './generation.mjs';
 import { BASIC_SKILL_ID } from './catalog.mjs';
+import { normalizeTypes } from './elements.mjs';
 
 export function battleObservation(battle) {
   const field = (actors, indices, own) => indices.map(index => actors[index]).filter(actor => actor?.hp > 0).map(actor => {
     const skills = actor.skills.map(skill => ({ id: skill.id, name: skill.name,
+      power: skill.power, element: skill.element,
       description: String(skill.description || '').slice(0, 180), usesLeft: skill.usesLeft, cooldownLeft: skill.cooldownLeft, cost: skill.cost }));
     if (own && !skills.some(skill => skill.id === BASIC_SKILL_ID[battle.packId])) skills.unshift({
       id: BASIC_SKILL_ID[battle.packId], name: '普通攻击', description: '独立基础行动；无资源消耗', usesLeft: 99, cooldownLeft: 0, cost: 0,
     });
     return {
-      id: actor.id, name: actor.name, hp: actor.hp, maxHp: actor.maxHp,
+      id: actor.id, name: actor.name, hp: actor.hp, maxHp: actor.maxHp, types: normalizeTypes(actor.types),
       statuses: actor.statuses.map(status => ({ name: status.name, turns: status.turns })),
       ...(own ? { resource: actor.resource, skills } : {}),
     };

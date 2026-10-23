@@ -62,6 +62,15 @@
     "human/sprite/defaults/unicorn-actions-v1.png",
     "human/sprite/defaults/nine-tail-fox-actions-v1.png",
     "human/sprite/defaults/thunderbird-actions-v1.png",
-    "human/sprite/defaults/sea-serpent-actions-v1.png"
+    "human/sprite/defaults/sea-serpent-actions-v1.png",
+    "human/sprite/defaults/desert-scorpion-actions-v1.png",
+    "human/sprite/defaults/wild-bear-actions-v1.png",
+    "human/sprite/defaults/savanna-lion-actions-v1.png",
+    "human/sprite/defaults/giant-lizard-actions-v1.png",
+    "human/sprite/defaults/golden-staff-warrior-actions-v1.png",
+    "human/sprite/defaults/elder-staff-mage-actions-v1.png",
+    "human/scene/celestial-terrace.png",
+    "human/scene/glacial-citadel.png",
+    "human/scene/volcanic-sanctum.png"
   ]
 }

@@ -1,5 +1,6 @@
 import { BASIC_SKILL_ID, getPack, resolveSkill, STATUSES, NEGATIVE_STATUS_IDS, TEAM_LIMIT, FIELD_LIMIT } from './catalog.mjs';
 import { chooseDefaultAvatar, chooseDefaultHue, chooseDefaultPaletteSeed, normalizeGender, validDefaultAvatarId, validDefaultHue, validDefaultPaletteSeed } from './looks.mjs';
+import { normalizeTypes, elementEffectiveness, sameTypeBonus } from './elements.mjs';
 
 const MAX_HP = 1_000_000_000;
 const MAX_EVENTS = 36;
@@ -82,16 +83,17 @@ export function normalizeActor(input = {}, { packId = 'human', id, side = 'playe
   const seen = new Set();
   let duplicateCount = 0, truncatedCount = 0;
   for (const [index, item] of candidates.entries()) {
-    const skillId = resolveSkill(item, packId).id;
-    if (skillId === BASIC_SKILL_ID[packId]) {
+    const resolvedKey = resolveSkill(item, packId), skillId = resolvedKey.id;
+    if (resolvedKey.baseId === BASIC_SKILL_ID[packId] && !resolvedKey.mechanics.length && !resolvedKey.extraStatuses.length) {
       if (!warnings.includes('普通攻击是独立基础行动，不占特殊技能槽')) warnings.push('普通攻击是独立基础行动，不占特殊技能槽');
       continue;
     }
-    if (seen.has(skillId)) {
+    const signature = JSON.stringify([skillId, resolvedKey.power, resolvedKey.element]);
+    if (seen.has(signature)) {
       duplicateCount++;
       continue;
     }
-    seen.add(skillId);
+    seen.add(signature);
     if (names.length < 4) names.push(item);
     else truncatedCount++;
   }
@@ -103,6 +105,7 @@ export function normalizeActor(input = {}, { packId = 'human', id, side = 'playe
     return {
       id: resolved.id, name: resolved.displayName, description: resolved.description, kind: resolved.kind,
       baseId: resolved.baseId, sourceDescription: resolved.sourceDescription,
+      power: resolved.power, element: resolved.element,
       mechanics: resolved.mechanics, extraStatuses: resolved.extraStatuses, mappingKnown: resolved.recognized,
       cost: resolved.cost, usesLeft: resolved.uses, cooldownLeft: 0,
     };
@@ -117,7 +120,7 @@ export function normalizeActor(input = {}, { packId = 'human', id, side = 'playe
   const avatarPaletteSeed = validDefaultPaletteSeed(source.avatarPaletteSeed) ? source.avatarPaletteSeed : chooseDefaultPaletteSeed();
   return {
     id: actorId, name: boundedText(source.name, side === 'player' ? '我方' : '对手'),
-    level, hp, maxHp, attack, defense, speed, resource, maxResource, skills,
+    level, hp, maxHp, attack, defense, speed, resource, maxResource, skills, types: normalizeTypes(source.types),
     statuses: [], controlStreak: 0, warnings, avatarId, avatarHue, avatarPaletteSeed, ...(avatar ? { avatar } : {}), ...(gender ? { gender } : {}),
     ...(typeof source.species === 'string' ? { species: source.species.slice(0, 32) } : {}), ...(typeof source.kind === 'string' ? { kind: source.kind.slice(0, 32) } : {}),
   };
@@ -264,7 +267,7 @@ function tacticalScore(state, actor, target, skill, expert, incoming) {
   const effects = [...(spec.status ? [spec.status] : []), ...(spec.extraStatuses || [])];
   const enemySkills = target.skills.map(entry => resolveSkill(entry, state.packId));
   const hasRecovery = enemySkills.some(entry => ['heal', 'lifeDrain', 'revive'].includes(entry.kind) || trait(entry, 'healSelf'));
-  let score = OFFENSIVE.has(spec.kind) ? 30 + (spec.power || 1) * 12 : -10;
+  let score = OFFENSIVE.has(spec.kind) ? 30 + (spec.power / 70 || 1) * 12 * elementEffectiveness(spec.element, target.types) * sameTypeBonus(spec.element, actor.types) : -10;
   if (spec.kind === 'heal') score = hp < 0.6 && healingFactor(actor) > 0 && state.healingBudget.enemy > 0 ? 70 + (1 - hp) * 30 : -30;
   if (spec.kind === 'cleanse') score = actor.statuses.filter(effect => NEGATIVE.has(effect.id)).length * 25 - 5;
   if (spec.kind === 'revive') score = !state.reviveUsed && state.enemies.some(member => !living(member)) && state.healingBudget.enemy > 0 ? 95 : -30;
@@ -392,7 +395,14 @@ function attackTarget(state, actor, target, spec, name, side) {
   const floor = spec.kind === 'areaDamage' ? 0.025 : 0.05;
   const rage = status(actor, 'rage') ? 1 + 0.25 * (1 - actor.hp / actor.maxHp) : 1;
   const execute = trait(spec, 'execute') && target.hp / target.maxHp < 0.3 ? 1.25 : 1;
-  const amount = Math.max(1, Math.round(Math.max(target.maxHp * floor, Math.min(target.maxHp * cap, raw * spec.power * modifier * expose * rage * execute * (critical ? 1.5 : 1)))));
+  const effectiveness = elementEffectiveness(spec.element, target.types);
+  const affinity = sameTypeBonus(spec.element, actor.types);
+  if (effectiveness !== 1) emit(state, 'effectiveness', { actorId: actor.id, targetId: target.id, skillId: spec.id, name, side, value: effectiveness,
+    text: effectiveness > 1 ? `效果拔群！${name}对${target.name}属性克制×${effectiveness}` : `效果不佳……${target.name}抵抗${name}，属性倍率×${effectiveness}` });
+  // Preserve the existing endurance bounds, then apply type matchups. A strong
+  // matchup must remain visible rather than disappear into the old base cap.
+  const baseDamage = Math.max(target.maxHp * floor, Math.min(target.maxHp * cap, raw * (spec.power / 70) * modifier * expose * rage * execute * (critical ? 1.5 : 1)));
+  const amount = Math.max(1, Math.round(Math.min(target.maxHp * (spec.kind === 'areaDamage' ? 0.4 : 0.7), baseDamage * effectiveness * affinity)));
   const hits = trait(spec, 'multiHit') ? 3 : 1;
   let dealt = 0, remaining = amount;
   for (let index = 0; index < hits && remaining > 0 && living(actor) && living(target); index++) {

@@ -72,17 +72,17 @@ async function rejectsCode(promise, code) {
 test('public mount is passive and registers fixed-pack and import routes', async () => {
   const host = makeHost();
   assert.deepEqual([...host.routes.keys()].sort(), [
-    'battle-act', 'battle-state', 'check-update', 'demo-start', 'design-actor', 'fill-party', 'generate-party', 'import-pack', 'install-update', 'manual-start', 'model-options', 'save-party', 'select-options', 'select-pack', 'state', 'summary',
+    'battle-act', 'battle-state', 'check-update', 'demo-start', 'design-actor', 'fill-party', 'generate-party', 'import-pack', 'install-update', 'list-update-backups', 'rollback-update', 'manual-start', 'model-options', 'save-party', 'select-options', 'select-pack', 'state', 'summary',
   ].map(route => `dsh-tavern-game/${route}`).sort());
   assert.equal(host.calls.saves.length, 0);
   assert.equal(host.calls.tasks.length, 0);
   const state = await host.call('state');
   assert.deepEqual(state.packs.map(pack => pack.id), ['human', 'fantasy']);
-  assert.equal(Object.keys(state.avatarCatalog).length, 54);
-  assert.deepEqual(state.avatarCatalog['starter-male'], { gender: 'male', category: 'human' });
-  assert.deepEqual(state.avatarCatalog['starter-female'], { gender: 'female', category: 'human' });
-  assert.deepEqual(state.avatarCatalog['qilin'], { gender: 'animal', category: 'animal' });
-  assert.deepEqual(state.avatarCatalog['moon-elf-archer'], { gender: 'female', category: 'human' });
+  assert.equal(Object.keys(state.avatarCatalog).length, 60);
+  assert.deepEqual(state.avatarCatalog['starter-male'], { name: '徒手冒险者（男）', gender: 'male', category: 'human' });
+  assert.deepEqual(state.avatarCatalog['starter-female'], { name: '徒手冒险者（女）', gender: 'female', category: 'human' });
+  assert.deepEqual(state.avatarCatalog['qilin'], { name: '麒麟', gender: 'animal', category: 'animal' });
+  assert.deepEqual(state.avatarCatalog['moon-elf-archer'], { name: '精灵弓手', gender: 'female', category: 'human' });
   assert.equal(host.calls.saves.length, 0);
   // The fixture intentionally exposes no card/file/worldbook APIs: public source reads suffice.
   assert.equal(host.tavern.getCharacter, undefined);
@@ -407,12 +407,12 @@ test('ordinary skill names also receive explicit story effects instead of silent
   assert.equal(view.party[0].hp, 80);
 });
 
-test('three-party compound skills and a full enemy team fit public turn storage throughout a battle', async () => {
-  const skills = ['拳', '剑', '弓'].map(theme => ({ name: theme + '复合秘技', description: '必定先攻、必中、必定暴击、多段攻击，附加中毒和麻痹，并吸血。'.repeat(8), mechanics: Object.keys(MECHANICS) }));
-  const members = Array.from({ length: 3 }, (_, i) => ({ name: '队友' + i, hp: 1000, maxHp: 1000, attack: 115, defense: 35, speed: 50, skills }));
+test('six-versus-six rosters with four elemental compound skills fit public turn storage throughout a battle', async () => {
+  const skills = ['拳', '剑', '弓', '枪'].map(theme => ({ name: theme + '复合秘技', power: 100, element: 'fire', description: '必定先攻、必中、必定暴击、多段攻击，附加中毒和麻痹，并吸血。'.repeat(8), mechanics: Object.keys(MECHANICS) }));
+  const members = Array.from({ length: 6 }, (_, i) => ({ name: '队友' + i, hp: 1000, maxHp: 1000, attack: 115, defense: 35, speed: 50, types: ['fire', 'water'], skills }));
   const host = makeHost({ variables: { 队伍: members } });
   await host.call('fill-party');
-  await host.settle({ rawText: marker(Array.from({ length: 3 }, (_, i) => ({ name: '敌人' + i, skills: skills.map(skill => ({ ...skill, description: skill.description.slice(0, 100) })) }))) });
+  await host.settle({ rawText: marker(Array.from({ length: 6 }, (_, i) => ({ name: '敌人' + i, types: ['nature', 'wind'], skills: skills.map(skill => ({ ...skill, description: skill.description.slice(0, 40) })) }))) });
   let view = await host.call('state');
   assert(view.battle);
   while (!view.battle.outcome && view.battle.round < 24) {

@@ -594,6 +594,9 @@ test('legacy avatar fallback honors explicit human metadata and animal kind desp
   assert(!['silver-wolf', 'ember-fox', 'snow-tiger', 'raven-scout'].includes(human), 'explicit human metadata wins over an animal-like nickname');
   const animal = await renderAvatar({ id: 'legacy-male-animal', name: '灵兽', species: 'unknown-beast', kind: 'animal', gender: 'male' });
   assert(['silver-wolf', 'ember-fox', 'snow-tiger', 'raven-scout', 'azure-eastern-dragon', 'western-dragon', 'qilin', 'xuanwu', 'forest-fae', 'phoenix', 'pegasus', 'griffin', 'unicorn', 'nine-tail-fox', 'thunderbird', 'sea-serpent'].includes(animal), 'gender does not empty the expanded animal avatar pool');
+  for (const [name, expected] of [['蝎子', 'desert-scorpion'], ['熊', 'wild-bear'], ['lion', 'savanna-lion'], ['lizard', 'giant-lizard']]) {
+    assert.equal(await renderAvatar({ id: 'legacy-' + expected, name }), expected, 'legacy names match the new animal roster');
+  }
 });
 
 test('only a settled current story marker enters automatically, and the same encounter opens once', async () => {
@@ -722,5 +725,100 @@ test('正文标记也认没有标签的 enemies 对象，并整段替换掉', ()
   assert.equal('他走进洞府，把门掩死。'.match(pattern), null)
   assert.equal('他说「enemies」这词听着就外行。'.match(pattern), null)
   assert.equal('<dsh_battle>{"enemies":[]}</dsh_battle>'.match(pattern)?.length, 1)
+})
+
+test('actor type and skill power edits save through the party route without starting combat', async () => {
+  const current = { ...snapshot, elementCatalog: [
+    { id: 'neutral', name: '无属性' }, { id: 'fire', name: '火' }, { id: 'water', name: '水' }, { id: 'nature', name: '木 / 自然' },
+  ], party: [{ ...actor, types: ['fire'], skills: [{ ...actor.skills[0], element: 'fire', power: 72 }] }] }
+  const view = await mount({ state: current })
+  const setSelect = async (ariaLabel, value) => {
+    const select = view.elements.find(item => item.type === 'select' && item.props['aria-label'] === ariaLabel)
+    assert(select, `missing select ${ariaLabel}`)
+    await select.props.onChange({ target: { value } }); await view.settle()
+  }
+  await setSelect('角色主属性', 'water')
+  await setSelect('角色副属性', 'nature')
+  await setSelect('技能1属性', 'fire')
+  const power = view.elements.find(item => item.type === 'input' && item.props['aria-label'] === '技能1威力')
+  assert(power); power.props.onChange({ target: { value: '108' } }); await view.settle()
+  await view.click('保存')
+
+  const saved = view.calls.find(call => call.name === 'save-party')
+  assert(saved, 'saving the edited card reaches the host')
+  assert.deepEqual(structuredClone(saved.args.party[0].types), ['water', 'nature'])
+  assert.equal(saved.args.party[0].skills[0].element, 'fire')
+  assert.equal(saved.args.party[0].skills[0].power, 108)
+  assert.deepEqual({ turn: saved.args.turn, textVersion: saved.args.textVersion, baseRevision: saved.args.baseRevision },
+    { turn: 12, textVersion: 'text-12', baseRevision: 9 })
+  assert.equal(view.calls.some(call => call.name === 'battle-act'), false, 'editing and saving actor data does not start or mutate a battle')
+})
+
+test('battle skill matchup follows the selected target and stays a queued local choice until round confirmation', async () => {
+  const elements = [{ id: 'neutral', name: '无属性' }, { id: 'fire', name: '火' }, { id: 'nature', name: '木 / 自然' }, { id: 'water', name: '水' }]
+  const battle = { ...activeBattle, activePlayers: [0], activeEnemies: [0, 1], activePlayer: 0, activeEnemy: 0,
+    party: [{ ...actor, types: ['fire'], skills: [{ id: 'fireball', name: '火球', element: 'fire', power: 90, usesLeft: 2, cooldownLeft: 0 }] }],
+    enemies: [
+      { id: 'nature-foe', name: '木灵', hp: 40, maxHp: 40, types: ['nature'], skills: [] },
+      { id: 'water-foe', name: '水灵', hp: 40, maxHp: 40, types: ['water'], skills: [] },
+    ] }
+  const view = await mount({ state: { ...snapshot, elementCatalog: elements, elementChart: { fire: { nature: 2, water: 0.5 } }, battle } })
+  await view.click('返回战斗')
+  view.renderElement(view.registrations.overlay.render({ gameId: 'g-1', close() {} })); await view.settle()
+  const skill = () => view.elements.find(item => item.type === 'button' && item.text.includes('火球'))
+  assert.match(skill().text, /火 · 威力 90 · 效果拔群 ×2/)
+  await skill().props.onClick(); await view.settle()
+  assert.equal(skill().props['aria-pressed'], true)
+  assert.equal(view.calls.some(call => call.name === 'battle-act'), false, 'choosing a skill only stages a local round command')
+
+  const target = view.elements.find(item => item.type === 'select' && item.text.includes('木灵') && item.text.includes('水灵'))
+  assert(target, `battle presents both legal targets in the attack target selector; selects: ${JSON.stringify(view.elements.filter(item => item.type === 'select').map(item => ({ value: item.props.value, label: item.text })))}`)
+  await target.props.onChange({ target: { value: '1' } }); await view.settle()
+  assert.match(skill().text, /火 · 威力 90 · 效果不佳 ×0\.5/)
+  assert.equal(skill().props['aria-pressed'], true, 'changing targets keeps the selected skill staged')
+  assert.equal(view.calls.some(call => call.name === 'battle-act'), false, 'neither selection nor target change advances battle state')
+  await view.unmount()
+})
+
+test('built-in scene choice persists and clears a previously imported scene override', async () => {
+  const media = new Map([['g-1:scene', new Blob(['imported scene'], { type: 'image/png' })]])
+  const local = new Map()
+  const localStorage = { getItem: key => local.get(key) ?? null, setItem: (key, value) => local.set(key, String(value)) }
+  const db = { transaction(_store, mode) {
+    const transaction = { objectStore: () => ({
+      put(value, key) { media.set(key, value); queueMicrotask(() => transaction.oncomplete?.()) },
+      get(key) { const request = {}; queueMicrotask(() => { request.result = media.get(key); request.onsuccess?.() }); return request },
+    }) }
+    return transaction
+  } }
+  const indexedDB = { open() { const request = {}; queueMicrotask(() => { request.result = db; request.onsuccess?.() }); return request } }
+  const globals = { localStorage, indexedDB }
+  const view = await mount({ state: snapshot, globals })
+  const scene = view.elements.find(item => item.type === 'select' && item.props['aria-label'] === '内置战斗场景')
+  assert(scene)
+  await scene.props.onChange({ target: { value: 'celestial-terrace' } }); await view.settle()
+  assert.equal(local.get('dsh-battle-scene:g-1'), 'celestial-terrace')
+  assert.equal(media.get('g-1:scene'), null, 'selecting a built-in scene clears the imported image override in local media')
+  await view.unmount()
+
+  const reloaded = await mount({ state: snapshot, globals })
+  assert.equal(reloaded.elements.find(item => item.type === 'select' && item.props['aria-label'] === '内置战斗场景').props.value, 'celestial-terrace')
+  await reloaded.unmount()
+})
+
+test('backup recovery UI passes the selected backup ID to the rollback route', async () => {
+  const backupIds = ['20261023120000000-11111111-1111-4111-8111-111111111111', '20261022120000000-22222222-2222-4222-8222-222222222222']
+  const view = await mount({ state: snapshot, routes: {
+    'list-update-backups': () => ({ backups: backupIds }),
+    'rollback-update': args => ({ from: '0.1.1', to: '0.1.0', backup: args.backup }),
+  } })
+  await view.click('查看完整备份')
+  assert.deepEqual(structuredClone(view.calls.find(call => call.name === 'list-update-backups').args), { gameId: 'g-1' })
+  const choice = view.elements.find(item => item.type === 'select' && item.props['aria-label'] === '选择恢复备份')
+  assert(choice)
+  await choice.props.onChange({ target: { value: backupIds[1] } }); await view.settle()
+  await view.click('恢复此备份')
+  assert.deepEqual(structuredClone(view.calls.find(call => call.name === 'rollback-update').args), { gameId: 'g-1', backup: backupIds[1] })
+  assert.match(view.elements.filter(item => item.props.role === 'status').map(item => item.text).join(''), /已恢复 0\.1\.1 → 0\.1\.0/)
 })
 

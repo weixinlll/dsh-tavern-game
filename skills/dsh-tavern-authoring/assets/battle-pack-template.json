@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "kind": "dsh-battle-pack",
+  "id": "my-cultivation-duel",
+  "name": "青岚门演武",
+  "basePack": "fantasy",
+  "description": "山门同伴与守关灵兽的短回合对决。",
+  "items": [
+    { "id": "healing-potion", "count": 2 },
+    { "id": "resource-potion", "count": 1 },
+    { "id": "cleanse", "count": 1 }
+  ],
+  "party": [
+    { "name": "青岚剑客", "hp": 80, "maxHp": 100, "attack": 18, "defense": 7, "speed": 55, "skills": ["破阵剑", "护身灵符"] }
+  ],
+  "opponents": [
+    { "name": "山道妖兽", "kind": "animal", "species": "雪狼", "hp": 90, "maxHp": 90, "attack": 15, "defense": 5, "speed": 47, "skills": ["妖爪", "寒息"] }
+  ],
+  "skillAliases": [
+    { "name": "破阵剑", "description": "以剑气破开目标防御。", "baseId": "fantasy-0-2", "mechanics": ["first"] },
+    { "name": "护身灵符", "description": "以符光凝成短暂护盾。", "baseId": "fantasy-0-13", "mechanics": ["shieldSelf"] },
+    { "name": "妖爪", "description": "近身挥爪攻击。", "baseId": "fantasy-0-1", "mechanics": [] },
+    { "name": "寒息", "description": "寒气造成伤害并减缓目标。", "baseId": "fantasy-0-20", "mechanics": [] }
+  ]
+}

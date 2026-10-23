@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "columns": 4,
+  "rows": 4,
+  "fps": 8,
+  "clips": {
+    "idle": [0, 1, 2, 1],
+    "attack": [3, 4, 5, 7],
+    "cast": [8, 9, 7],
+    "guard": [10],
+    "hit": [11, 7],
+    "dodge": [12, 7],
+    "down": [13],
+    "victory": [14, 15]
+  }
+}

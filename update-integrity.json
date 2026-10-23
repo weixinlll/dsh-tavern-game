@@ -1,0 +1,442 @@
+{
+  "schemaVersion": 1,
+  "name": "dsh-tavern-game",
+  "version": "0.1.1",
+  "files": [
+    {
+      "path": "LICENSE",
+      "size": 1085,
+      "sha256": "67dd21456238700372cced8835942667c8e4f25855bb0256d00262b7b3ecee45"
+    },
+    {
+      "path": "README.md",
+      "size": 9235,
+      "sha256": "6b976b87989454f6c9f42e88d408e1df60b593545e782d34ff4ecebab138434a"
+    },
+    {
+      "path": "assets/human/audio/attack.wav",
+      "size": 7100,
+      "sha256": "4a3f5cf9a981f1b415bf960f7bdde0c89ca708e880eeebb4f6049e1a07568cc7"
+    },
+    {
+      "path": "assets/human/audio/battle-loop.wav",
+      "size": 1539534,
+      "sha256": "e90046ea46d9a76e50d86a74428ec8f9fa2dc7798e45dcc16471980d442ecdea"
+    },
+    {
+      "path": "assets/human/audio/hit.wav",
+      "size": 9746,
+      "sha256": "3fff46a63a9f9d4f4f443c2991f4204776c1be5b6e213cc258d9a0fd78a71079"
+    },
+    {
+      "path": "assets/human/scene/celestial-terrace.png",
+      "size": 2818032,
+      "sha256": "214b61f42f78b8d87f53bcb0a585376934ec14fbc36fa27efed3daabf9744ff4"
+    },
+    {
+      "path": "assets/human/scene/forest-clearing.png",
+      "size": 2857305,
+      "sha256": "72df5b6e337ca2a05cb4a68169e4584ddd3237aad84c2df6fc0e593bcafaf754"
+    },
+    {
+      "path": "assets/human/scene/glacial-citadel.png",
+      "size": 3135281,
+      "sha256": "3f0fee4690279175339e6a90d3223bade39dcf321ef48b2d090beeddd750025d"
+    },
+    {
+      "path": "assets/human/scene/mountain-courtyard.png",
+      "size": 2518183,
+      "sha256": "0a4f1316fc9dcd36ad2475b1984db09ba2366a1ec4ef41ff81522f4554762a76"
+    },
+    {
+      "path": "assets/human/scene/volcanic-sanctum.png",
+      "size": 2989279,
+      "sha256": "9355d68a5df015a994da21a7e54794be23e214e12394c58820d73730a9e822b3"
+    },
+    {
+      "path": "assets/human/sprite/adventurer-female-actions-v1.png",
+      "size": 1866958,
+      "sha256": "2ada9306f3f4dceb7a4dd66e9d06827ecaf1f72bfc5a55390d7033f30de18a49"
+    },
+    {
+      "path": "assets/human/sprite/adventurer-female-v2.png",
+      "size": 1612495,
+      "sha256": "8e06e32d3f3766a1fe1bad1acddbf7c2e767683930453fc39edf8353adfd9ab3"
+    },
+    {
+      "path": "assets/human/sprite/adventurer-male-actions-v1.png",
+      "size": 2040488,
+      "sha256": "7a06aa2366e8d17c41c7a23e39d8b3ba84b4ec33b9cf37ee7e386c4b9d8d9b9e"
+    },
+    {
+      "path": "assets/human/sprite/adventurer-male-v2.png",
+      "size": 1651989,
+      "sha256": "1d5ebcfbca759ae08fefed7bf3e44c93e197bd367eb25fbb1299db75ff95f446"
+    },
+    {
+      "path": "assets/human/sprite/defaults/amber-monk-actions-v1.png",
+      "size": 3050581,
+      "sha256": "773e5e35a92348f6b19513a0cf7fa4a54f9e021589d40eced149956335a86e6a"
+    },
+    {
+      "path": "assets/human/sprite/defaults/azure-eastern-dragon-actions-v1.png",
+      "size": 3906170,
+      "sha256": "31844d25a42455b85da29d6ccab5764ac6448973985d1f48569593171dc099b7"
+    },
+    {
+      "path": "assets/human/sprite/defaults/azure-healer-actions-v1.png",
+      "size": 3745209,
+      "sha256": "412d3e5563d99ae000774401719e3918691087ea44ce5aa4e80a562b713b3542"
+    },
+    {
+      "path": "assets/human/sprite/defaults/bamboo-alchemist-actions-v1.png",
+      "size": 2062531,
+      "sha256": "ec007203ee0d8b8e808a2cc7ac9d5be817e22bdab8c5de0f3825c4302464435f"
+    },
+    {
+      "path": "assets/human/sprite/defaults/beastkeeper-actions-v1.png",
+      "size": 2507620,
+      "sha256": "13a45f48f0594921b91f8a2565a4df5dbbf6172df7d1a9e6f649f248587b7f52"
+    },
+    {
+      "path": "assets/human/sprite/defaults/clockwork-knight-actions-v1.png",
+      "size": 2869007,
+      "sha256": "d79310a43f86c8c7e6d26a052001f56b1ca74a88132da6b9e304356c44098683"
+    },
+    {
+      "path": "assets/human/sprite/defaults/crimson-duelist-actions-v1.png",
+      "size": 2349600,
+      "sha256": "1d3804da96de32ea564ffb9f5027a0a100b5a2f04162824275665e016756937e"
+    },
+    {
+      "path": "assets/human/sprite/defaults/dawn-paladin-actions-v1.png",
+      "size": 2328131,
+      "sha256": "12798f7cded6aa34c3c38614a5b77fea4176b77a4788176fb0c13362d5956fc9"
+    },
+    {
+      "path": "assets/human/sprite/defaults/desert-falconer-actions-v1.png",
+      "size": 3494705,
+      "sha256": "e308a346168b4830b0c123a5c07ff3ac738f390b88ae42b8dd3e2072c6646c3f"
+    },
+    {
+      "path": "assets/human/sprite/defaults/desert-scorpion-actions-v1.png",
+      "size": 2345052,
+      "sha256": "599143872cd4366702dd781112ed66462c31cd249689de855529db2970bfeee1"
+    },
+    {
+      "path": "assets/human/sprite/defaults/desert-sentinel-actions-v1.png",
+      "size": 2202164,
+      "sha256": "a7c66451d65ede2f344191b1471a2d03c125ba83d592bd86fb9ffecf136aa6b7"
+    },
+    {
+      "path": "assets/human/sprite/defaults/dusk-ronin-actions-v1.png",
+      "size": 1977232,
+      "sha256": "64b2f9c5681f32f798bdc68ce78229b9c1c51c05a450b36209e9139cfeefc05c"
+    },
+    {
+      "path": "assets/human/sprite/defaults/dwarven-artificer-actions-v1.png",
+      "size": 3409682,
+      "sha256": "a782c327ff1cdce5ebd98975cea7c766e13fac04cfdcb51fbeac0a6795f3500e"
+    },
+    {
+      "path": "assets/human/sprite/defaults/elder-staff-mage-actions-v1.png",
+      "size": 2199526,
+      "sha256": "4e0d685a4095cbcee4a002e21e17a8b50d203e87744a76015ad86d02c7c2cd35"
+    },
+    {
+      "path": "assets/human/sprite/defaults/ember-fox-actions-v1.png",
+      "size": 3616070,
+      "sha256": "294e7964cdafccd9119b2631d3c1f29157fd5858bd3b0eb36de5163fade0168c"
+    },
+    {
+      "path": "assets/human/sprite/defaults/ember-gunslinger-actions-v1.png",
+      "size": 2973407,
+      "sha256": "ef2b0df60e4522c82d20628e3419784530804ce95f657edd75cf629d8f37752d"
+    },
+    {
+      "path": "assets/human/sprite/defaults/forest-fae-actions-v1.png",
+      "size": 3430410,
+      "sha256": "031a8bbf8e78987146f6b1912721c9c4864ad6283e750bc3c61996eb3b4af2c2"
+    },
+    {
+      "path": "assets/human/sprite/defaults/forest-ranger-actions-v1.png",
+      "size": 1772058,
+      "sha256": "adfeb9c88fe970f6c705d4d9cae7b6bcf1ebb753e8ffe3bc74e9b2c199507f98"
+    },
+    {
+      "path": "assets/human/sprite/defaults/frost-archer-actions-v1.png",
+      "size": 2452182,
+      "sha256": "40cac151d51ef7def69494b93b7f204cb7c8f478955404328839372459127322"
+    },
+    {
+      "path": "assets/human/sprite/defaults/frost-mage-actions-v1.png",
+      "size": 2398369,
+      "sha256": "07bae7bd7b56513483714f3406c682191f199b4f71fb4a8fde93fc273ed6ca13"
+    },
+    {
+      "path": "assets/human/sprite/defaults/giant-lizard-actions-v1.png",
+      "size": 2258860,
+      "sha256": "3efddaa9e0e45fb979e39c00ab2ee7cb90c4fc9660630204c430e5651d5f0a0b"
+    },
+    {
+      "path": "assets/human/sprite/defaults/golden-staff-warrior-actions-v1.png",
+      "size": 2402388,
+      "sha256": "42c73a502d68e13f5608592f2eb421a9457cda0c15e7927a57c340fb882a63ac"
+    },
+    {
+      "path": "assets/human/sprite/defaults/griffin-actions-v1.png",
+      "size": 4272579,
+      "sha256": "30c313ff65d72a19d670652a344453803a22a35a15836e15cdcbb1cdd15d4b8f"
+    },
+    {
+      "path": "assets/human/sprite/defaults/iron-guardian-actions-v1.png",
+      "size": 2314881,
+      "sha256": "76d6868c146bc624bbaeed3c8c51552b6c30cb71475b35462e6cc840d9dfe751"
+    },
+    {
+      "path": "assets/human/sprite/defaults/jade-lancer-actions-v1.png",
+      "size": 2379777,
+      "sha256": "e532e95e90dac458bb437ca22895c8d1bd6933ba708cc5072dc9a7d299a14979"
+    },
+    {
+      "path": "assets/human/sprite/defaults/jade-swordsman-actions-v1.png",
+      "size": 2417190,
+      "sha256": "9d0340e5f2e924e749a57fcc9a3523cff1fff12bd113c62bfbd1fb367245ad99"
+    },
+    {
+      "path": "assets/human/sprite/defaults/lingxiao-cultivator-actions-v1.png",
+      "size": 3016360,
+      "sha256": "fa02266efee7d706da13ffce2c92b3409809a8c46f5ab34095edba0c89d17ed9"
+    },
+    {
+      "path": "assets/human/sprite/defaults/lotus-dancer-actions-v1.png",
+      "size": 1974156,
+      "sha256": "5f8909f3b90b11d9ca8af97b9d8dc91ee993e2aaf54a9216ff61fa5ae510be01"
+    },
+    {
+      "path": "assets/human/sprite/defaults/moon-elf-archer-actions-v1.png",
+      "size": 2888091,
+      "sha256": "d5bdfef45742b1ae3d672c75c8a31eae0cefb928f300d6d0cbf0fd4d55425a08"
+    },
+    {
+      "path": "assets/human/sprite/defaults/moonlit-spear-guard-actions-v1.png",
+      "size": 3017647,
+      "sha256": "63cb3bc3fd290c3c0e53ac98718859b33b115deec5969e974e86bb19b2213538"
+    },
+    {
+      "path": "assets/human/sprite/defaults/mountain-exorcist-actions-v1.png",
+      "size": 3257733,
+      "sha256": "73318c9627fa6742403aef6d4d66cf1b9df7859ec525034a761ed848f9d5c49c"
+    },
+    {
+      "path": "assets/human/sprite/defaults/night-ninja-actions-v1.png",
+      "size": 2451047,
+      "sha256": "4f0f7d331fdef95189a2589cab9cfcd0c7de1118fe2890454a071a28fa96e034"
+    },
+    {
+      "path": "assets/human/sprite/defaults/nine-tail-fox-actions-v1.png",
+      "size": 3896020,
+      "sha256": "705a08cecb6564069bae72556f7e709dc5bd82505e7c995e6a492ba2678484a1"
+    },
+    {
+      "path": "assets/human/sprite/defaults/obsidian-brawler-actions-v1.png",
+      "size": 2401833,
+      "sha256": "cb05e23a0c4146d54ddb88729556e16c38bc26c5fd3dd5a332b21ab713b9f42f"
+    },
+    {
+      "path": "assets/human/sprite/defaults/pegasus-actions-v1.png",
+      "size": 3619018,
+      "sha256": "57712f86270b25ffabc88179b389d46a75acd4fd3ebcae51193b562ec05c29fc"
+    },
+    {
+      "path": "assets/human/sprite/defaults/phoenix-actions-v1.png",
+      "size": 4035227,
+      "sha256": "029b03598a7167cca49b8cb0effae6cc09322e0fc388d3352309a0edba261a24"
+    },
+    {
+      "path": "assets/human/sprite/defaults/pirate-captain-actions-v1.png",
+      "size": 2525681,
+      "sha256": "abe6bc6b759e322a833021d35d842ec85125544f26c86c218e174e361793e5d4"
+    },
+    {
+      "path": "assets/human/sprite/defaults/qilin-actions-v1.png",
+      "size": 3674475,
+      "sha256": "bca807dbc57fa5328da5f32da1e7afd379c5492f2870413bee84270633590cc5"
+    },
+    {
+      "path": "assets/human/sprite/defaults/raven-scout-actions-v1.png",
+      "size": 3587745,
+      "sha256": "c9c3d6d6940abe607fcd1a86cfdf71c1971eec08d841ee5409dcccbe17bb3790"
+    },
+    {
+      "path": "assets/human/sprite/defaults/savanna-lion-actions-v1.png",
+      "size": 1422390,
+      "sha256": "92f79f4dc873b91609022ca2b9d5c6a2f6bf370aa717fa712248fc35b7d6cff1"
+    },
+    {
+      "path": "assets/human/sprite/defaults/scarlet-sorceress-actions-v1.png",
+      "size": 1915074,
+      "sha256": "2ffad0db7a0228c17a904360c5be96cf882f177ea68d4562a72845633c7bb91f"
+    },
+    {
+      "path": "assets/human/sprite/defaults/scholar-swordsman-actions-v1.png",
+      "size": 2605540,
+      "sha256": "15f95f3c1685642d1f4cbc285194f335d5bcaf8665a8553f5a75638758e782a1"
+    },
+    {
+      "path": "assets/human/sprite/defaults/sea-serpent-actions-v1.png",
+      "size": 4142895,
+      "sha256": "f42e62b0bdea0fefd9ff0783d3f76556fc4a3e8d9cd3df6178caf0739be4e2f0"
+    },
+    {
+      "path": "assets/human/sprite/defaults/shadow-assassin-actions-v1.png",
+      "size": 2438863,
+      "sha256": "ddaece0d89bf0905f5c03e7c90654f77746ec7eee69b2063d46b591a4c675f7e"
+    },
+    {
+      "path": "assets/human/sprite/defaults/silver-wolf-actions-v1.png",
+      "size": 3800774,
+      "sha256": "befa810f34a71ae303d32468e9ac1902aa935db590b076f980a362351e4acafd"
+    },
+    {
+      "path": "assets/human/sprite/defaults/snow-tiger-actions-v1.png",
+      "size": 4100798,
+      "sha256": "bde2d2e6182587ac96ddd72f8887ed6950fcf7a0bb39c7a469c5efe72ccc0f42"
+    },
+    {
+      "path": "assets/human/sprite/defaults/star-oracle-actions-v1.png",
+      "size": 3106233,
+      "sha256": "cdf9c57f7e199e7381c31ebd71fd7414bfa2a6137feff0ec2bb4d4d79bb961c6"
+    },
+    {
+      "path": "assets/human/sprite/defaults/storm-lancer-actions-v1.png",
+      "size": 3155826,
+      "sha256": "77c5317493873401c925f64ae7b4ec8b5bf3e43ae20a11960b9f17b9c2339155"
+    },
+    {
+      "path": "assets/human/sprite/defaults/sun-priestess-actions-v1.png",
+      "size": 2772275,
+      "sha256": "fe4953d3fa6421ce2d7d43fb586104b51220bfa516c3901ddf6d24386f0fcc75"
+    },
+    {
+      "path": "assets/human/sprite/defaults/thunder-priest-actions-v1.png",
+      "size": 3314573,
+      "sha256": "5c31cb8033bed4bb2a1fae072ce6a6dc4045d735e9c4bc36867c0c57e6dcca42"
+    },
+    {
+      "path": "assets/human/sprite/defaults/thunderbird-actions-v1.png",
+      "size": 3137950,
+      "sha256": "8bd27bd760bc5c86aa8cf5513791b55d0ebf7db25367ee9e4c658dc711fab7b7"
+    },
+    {
+      "path": "assets/human/sprite/defaults/unicorn-actions-v1.png",
+      "size": 3011027,
+      "sha256": "62bce66760a6c731c12ad31d8093aa599a1cc9b0b00c04c8ae6309cfefa0943e"
+    },
+    {
+      "path": "assets/human/sprite/defaults/vampire-duelist-actions-v1.png",
+      "size": 2435187,
+      "sha256": "6e1b1552cbfe5f02a29b6d327b948e8123199faabfc95831164d5ca4b91b97d7"
+    },
+    {
+      "path": "assets/human/sprite/defaults/violet-assassin-actions-v1.png",
+      "size": 1957216,
+      "sha256": "c16a95d6d591a071ed4ee37ffea068212119837ea6eaffee3d3f7c5e372a209a"
+    },
+    {
+      "path": "assets/human/sprite/defaults/wandering-bard-actions-v1.png",
+      "size": 2864584,
+      "sha256": "e8b8a6db3d3555e64ddb9f78661286c32e786d6595c085d2b1e81de3254e2ab5"
+    },
+    {
+      "path": "assets/human/sprite/defaults/western-dragon-actions-v1.png",
+      "size": 3878450,
+      "sha256": "cf541a54a19a15ed8c6f595c6ed88cf85e3aef3a4db245be686f79ee65abac3c"
+    },
+    {
+      "path": "assets/human/sprite/defaults/wild-bear-actions-v1.png",
+      "size": 2134977,
+      "sha256": "8b5b348038312850fa970d7001c27101e3fa33d26730459bd013f6fd6aa8c825"
+    },
+    {
+      "path": "assets/human/sprite/defaults/xuanwu-actions-v1.png",
+      "size": 4796496,
+      "sha256": "a1ff02dd30fc6e223c6b0fb99b15623a679f4d691f0dd434bc4e761b99d8d7a5"
+    },
+    {
+      "path": "assets/manifest.json",
+      "size": 3918,
+      "sha256": "165ede03d70f34ab9cc8597658189f5736746ca65464d3f6dac0b1d9e8666e7e"
+    },
+    {
+      "path": "assets/templates/custom-pack.json",
+      "size": 1065,
+      "sha256": "f0dc86ee1c9f36e221c3dca6e8e261be90a1365ac68a6256d46b39266da7d1cd"
+    },
+    {
+      "path": "client.js",
+      "size": 169056,
+      "sha256": "ed5087c2bd3e46163135a47b0753cca64fd1d49ace41f9f5e174c3e53d76633f"
+    },
+    {
+      "path": "index.mjs",
+      "size": 59,
+      "sha256": "752b3810e764d550799b4f24ab50ff7678a7582ffb2c102f34ccfc3a52dfffe1"
+    },
+    {
+      "path": "package.json",
+      "size": 752,
+      "sha256": "5d9166ccb599ec78643a7fb690160257097bcbc03ae348422c52cdc578687d24"
+    },
+    {
+      "path": "simple/catalog.mjs",
+      "size": 30338,
+      "sha256": "095717c6867e9981185369edf00e7d4254603bf2da2c78c723ebf61b4904f23e"
+    },
+    {
+      "path": "simple/context.mjs",
+      "size": 44051,
+      "sha256": "e59a5954253e306210703dbaa0142ce2821f9abd7b618d42eab7006200050c0f"
+    },
+    {
+      "path": "simple/elements.mjs",
+      "size": 2863,
+      "sha256": "df5c43051c26975d9bdceea0088b59f16c5f554f86b6cf9e472fbf19473c0bf8"
+    },
+    {
+      "path": "simple/engine.mjs",
+      "size": 54632,
+      "sha256": "f859f44bf7d7eadc050fef928a832a667c08a82609aa0121977876bd240d49c4"
+    },
+    {
+      "path": "simple/generation.mjs",
+      "size": 22370,
+      "sha256": "e1d9777eb5e099f391db8519c9e35a5ee44afbe7f629279f280c0b8630f8c779"
+    },
+    {
+      "path": "simple/imports.mjs",
+      "size": 6951,
+      "sha256": "f5b2fadffe39c9c3a9ede04686f0724a964f97b37ead3910ce3e14f1b69ad4b0"
+    },
+    {
+      "path": "simple/looks.mjs",
+      "size": 11835,
+      "sha256": "47d45050aa6c70162d877482f5beab898d0b238a230543647d1aa072920dc92b"
+    },
+    {
+      "path": "simple/opponent-ai.mjs",
+      "size": 5839,
+      "sha256": "93ee29841913d888c17deea2806c522261d7ec7c2351aa61dc33e218869d6120"
+    },
+    {
+      "path": "simple/plugin.mjs",
+      "size": 81425,
+      "sha256": "d980fea2116cd3327fdf6545cf7d7a2dbf3bd8017f3e97baa6eff901e7dd8dac"
+    },
+    {
+      "path": "simple/update.mjs",
+      "size": 22304,
+      "sha256": "1f9840d84a32c001775178a3e3cf4e335097248e2653fd1f9974fc2ca398c4dc"
+    }
+  ]
+}

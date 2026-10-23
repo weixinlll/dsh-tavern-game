@@ -94,7 +94,7 @@ test('model party JSON parser rejects malformed, oversized, empty, and over-six 
 test('encounter marker permits only 1–6 named enemies and reduces their skills to names and descriptions', () => {
   const result = encounterFromText('<dsh_battle>{"enemies":[{"name":"山匪","level":2,"hp":99999,"formula":"1d999","skills":["断水刀",{"name":"迷踪步","description":"短暂隐匿","power":9999,"formula":"free win"}]}]}</dsh_battle>')
   assert.equal(result.enemies.length, 1)
-  assert.deepEqual(Object.keys(result.enemies[0]).sort(), ['description', 'level', 'name', 'skills'])
+  assert.deepEqual(Object.keys(result.enemies[0]).sort(), ['description', 'level', 'name', 'skills', 'types'])
   assert.deepEqual(result.enemies[0].skills, [{ name: '断水刀' }, { name: '迷踪步', description: '短暂隐匿' }])
   assert.equal('hp' in result.enemies[0], false)
   assert.equal('formula' in result.enemies[0], false)

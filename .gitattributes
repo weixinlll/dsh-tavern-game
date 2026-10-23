@@ -1,0 +1,10 @@
+# Release integrity hashes the exact packaged bytes. Never transform runtime
+# line endings between the Windows workspace, Git objects and GitHub tarballs.
+/package.json -text
+/index.mjs -text
+/client.js -text
+/README.md -text
+/LICENSE -text
+/update-integrity.json -text
+/simple/*.mjs -text
+/assets/** -text
