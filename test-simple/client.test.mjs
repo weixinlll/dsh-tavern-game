@@ -1,10 +1,12 @@
-import test from 'node:test'
+import test, { afterEach } from 'node:test'
 import assert from 'node:assert/strict'
 import fs from 'node:fs/promises'
 import vm from 'node:vm'
 
 const source = await fs.readFile(new URL('../client.js', import.meta.url), 'utf8')
 const tick = async () => { await new Promise(resolve => setTimeout(resolve, 0)) }
+const cleanups = new Set()
+afterEach(() => { for (const cleanup of [...cleanups]) cleanup() })
 const nodeText = node => node == null || typeof node === 'boolean' ? ''
   : Array.isArray(node) ? node.map(nodeText).join('')
     : typeof node === 'object' ? (node.children || []).map(nodeText).join('') : String(node)
@@ -14,6 +16,7 @@ async function mount({ state, routes = {}, watchHead = {}, globals = {} }) {
   const instances = new Map()
   const registrations = {}
   const calls = []
+  const watchers = new Set()
   let current
   let submitInputCalls = 0
   const React = {
@@ -49,13 +52,13 @@ async function mount({ state, routes = {}, watchHead = {}, globals = {} }) {
     assetUrl: path => `/asset/${path}`,
     registerPanel: config => { registrations.panel = config },
     registerTextMarker: config => { registrations.marker = config },
-    watchTurnState(_gameId, listener) { listener({ turn: 12, textVersion: 'text-12', settled: true, ...watchHead }); return () => {} },
+    watchTurnState(_gameId, listener) { watchers.add(listener); listener({ turn: 12, textVersion: 'text-12', settled: true, ...watchHead }); return () => watchers.delete(listener) },
     callHost: async (route, args) => {
       const name = route.split('/').at(-1)
       calls.push({ name, args })
       return routes[name] ? routes[name](args, calls) : state
     },
-    openOverlay(options) { registrations.overlayCount = (registrations.overlayCount || 0) + 1; registrations.overlay = options; return { close() {} } },
+    openOverlay(options) { registrations.overlayCount = (registrations.overlayCount || 0) + 1; registrations.overlay = options; return { close() { options.onClose?.() } } },
     setInput: async args => { registrations.input = args },
     submitInput: async () => { submitInputCalls++ },
   }
@@ -85,11 +88,14 @@ async function mount({ state, routes = {}, watchHead = {}, globals = {} }) {
   let extraNode = null
   const render = () => { elements = []; renderNode(rootElement()); if (extraNode) renderNode(extraNode, 'extra') }
   const renderElement = node => { extraNode = node; render() }
-  const settle = async () => { await tick(); await tick(); render() }
+  const settle = async () => { for (let cycle = 0; cycle < 3; cycle++) { await tick(); await tick(); render() } }
+  const unmount = () => { for (const instance of instances.values()) for (const hook of instance.hooks) hook?.cleanup?.(); cleanups.delete(unmount) }
+  cleanups.add(unmount)
   render(); await settle()
   return {
     calls, registrations, audios, get submitInputCalls() { return submitInputCalls }, get elements() { return elements }, render, renderElement, settle,
-    unmount: () => { for (const instance of instances.values()) for (const hook of instance.hooks) hook?.cleanup?.() },
+    unmount,
+    emitHead: head => { for (const watcher of [...watchers]) watcher(head) },
     click: async text => {
       const button = elements.find(item => item.type === 'button' && item.text === text)
       assert(button, `button not found: ${text}`)
@@ -328,7 +334,7 @@ test('battle uses active indexes, switches living bench members, and cues every 
   const overlay = view.registrations.overlay
   assert(overlay, 'demo start opens the full-screen battle')
   const battleElement = overlay.render({ gameId: 'g-1', close() {} })
-  assert.equal(battleElement.type.name, 'BattleOverlay')
+  assert.equal(battleElement.type.name, 'BattleGate')
   assert.equal(battleElement.props.initial.battle.id, 'b-1')
   view.renderElement(battleElement)
   await view.settle()
@@ -427,7 +433,8 @@ test('demo stays out of plot and read-only battles disable combat controls', asy
   lockedView.renderElement(overlay.render({ gameId: 'g-1', close() {} }))
   await lockedView.settle()
   const battleToggle = lockedView.elements.find(item => item.type === 'button' && item.text === '战斗')
-  assert(battleToggle?.props.disabled, 'read-only or settling battle disables combat actions')
+  assert(!battleToggle, 'read-only or settling battle never enables combat actions')
+  assert(lockedView.elements.some(item => item.props.role === 'alert' && /正文或战斗已更新/.test(item.text)))
   await demoView.unmount()
   await lockedView.unmount()
 })
@@ -599,13 +606,21 @@ test('legacy avatar fallback honors explicit human metadata and animal kind desp
   }
 });
 
-test('only a settled current story marker enters automatically, and the same encounter opens once', async () => {
+test('a settled story offers an entry and opens the scene only after an explicit click', async () => {
   const story = { ...activeBattle, id: 'story-fixture', turn: 12, textVersion: 'text-12' };
   const view = await mount({ state: { ...snapshot, battle: story } });
-  view.renderElement(view.registrations.marker.render({ gameId: 'g-1', turn: 12, streaming: false })); await view.settle();
+  const marker = () => view.registrations.marker.render({ gameId: 'g-1', turn: 12, streaming: false, match: '决斗' });
+  view.renderElement(marker()); await view.settle();
+  assert.equal(view.registrations.overlayCount, undefined, 'settlement never steals the reading screen');
+  assert(view.elements.some(item => item.type === 'button' && item.text === '继续战斗'));
+  await view.click('继续战斗');
   assert.equal(view.registrations.overlayCount, 1);
-  view.renderElement(view.registrations.marker.render({ gameId: 'g-1', turn: 12, streaming: false })); await view.settle();
+  view.renderElement(marker()); await view.settle();
+  await view.click('继续战斗');
   assert.equal(view.registrations.overlayCount, 1);
+  view.registrations.overlay.onClose();
+  await view.click('继续战斗');
+  assert.equal(view.registrations.overlayCount, 2, 'closing the scene leaves the story entry reusable');
   await view.unmount();
   const streaming = await mount({ state: { ...snapshot, battle: story } });
   streaming.renderElement(streaming.registrations.marker.render({ gameId: 'g-1', turn: 12, streaming: true })); await streaming.settle();
@@ -613,6 +628,48 @@ test('only a settled current story marker enters automatically, and the same enc
   const old = await mount({ state: { ...snapshot, battle: story } });
   old.renderElement(old.registrations.marker.render({ gameId: 'g-1', turn: 11, streaming: false })); await old.settle();
   assert.equal(old.registrations.overlayCount, undefined); await old.unmount();
+});
+
+test('several fight words keep the prose and share one clickable story entry', async () => {
+  const story = { ...activeBattle, id: 'story-words', seq: 0, turn: 12, textVersion: 'text-12' };
+  const view = await mount({ state: { ...snapshot, battle: story } });
+  view.renderElement(['决斗', '战斗', '迎战'].map(match => view.registrations.marker.render({ gameId: 'g-1', turn: 12, streaming: false, match })));
+  await view.settle();
+  assert.equal(view.elements.filter(item => item.props['aria-label'] === '剧情战斗入口').length, 1);
+  assert.equal(view.elements.filter(item => item.type === 'button' && item.text === '进入战斗').length, 1);
+  assert.equal(view.registrations.overlayCount, undefined);
+  const text = view.elements.filter(item => item.props.className === 'stg-story-marker').map(item => item.text).join('');
+  for (const word of ['决斗', '战斗', '迎战']) assert(text.includes(word));
+  view.emitHead({ turn: 13, textVersion: 'text-13', settled: true }); await view.settle();
+  assert(!view.elements.some(item => item.props['aria-label'] === '剧情战斗入口'), 'old turn entries disappear on timeline advance');
+});
+
+test('a stale entry cannot open a different battle after the story advances', async () => {
+  const story = { ...activeBattle, id: 'story-old-entry', turn: 12, textVersion: 'text-12' };
+  let current = { ...snapshot, battle: story };
+  const view = await mount({ state: current, routes: { 'battle-state': () => current } });
+  view.renderElement(view.registrations.marker.render({ gameId: 'g-1', turn: 12, streaming: false, match: '决斗' })); await view.settle();
+  current = { ...current, turnState: { turn: 13, textVersion: 'text-13', settled: true }, battle: { ...story, id: 'story-another', turn: 13, textVersion: 'text-13' } };
+  await view.click('继续战斗');
+  assert.equal(view.registrations.overlayCount, undefined);
+  assert(view.elements.some(item => item.props.role === 'alert' && /正文已更新/.test(item.text)));
+  assert(!view.calls.some(call => call.name === 'battle-act'));
+});
+
+test('the loading gate remains cancelable and rejects a battle changed while preparing', async () => {
+  let resolveCurrent, defer = false;
+  const pending = new Promise(resolve => { resolveCurrent = resolve });
+  const view = await mount({ state: { ...snapshot, battle: activeBattle }, routes: { 'battle-state': () => defer ? pending : { ...snapshot, battle: activeBattle } } });
+  await view.click('返回战斗');
+  defer = true;
+  view.renderElement(view.registrations.overlay.render({ gameId: 'g-1', close() {} })); await view.settle();
+  assert(view.elements.some(item => item.props['aria-label'] === '准备战斗场景'));
+  assert(view.elements.some(item => item.type === 'button' && item.text === '返回正文'));
+  assert(!view.elements.some(item => item.props.className === 'stg-figure'));
+  resolveCurrent({ ...snapshot, battle: { ...activeBattle, id: 'replacement-battle' } }); await view.settle();
+  assert(view.elements.some(item => item.props.role === 'alert' && /正文或战斗已更新/.test(item.text)));
+  assert(!view.elements.some(item => item.props.className === 'stg-figure'));
+  assert.equal(view.audios.length, 0);
 });
 
 const appearanceRig = { schemaVersion: 1, columns: 4, rows: 4, fps: 8, clips: { idle: [3], attack: [3, 4, 5, 7], kick: [3, 4, 6, 7], cast: [8, 9, 7], hit: [11, 7], guard: [10], dodge: [12, 7], down: [13], victory: [14, 15] } }
@@ -776,6 +833,13 @@ test('battle skill matchup follows the selected target and stays a queued local 
   await target.props.onChange({ target: { value: '1' } }); await view.settle()
   assert.match(skill().text, /火 · 威力 90 · 效果不佳 ×0\.5/)
   assert.equal(skill().props['aria-pressed'], true, 'changing targets keeps the selected skill staged')
+  const dockToggle = label => view.elements.find(item => item.type === 'button' && item.props['aria-label'] === label)
+  await dockToggle('收起操作区').props.onClick(); await view.settle()
+  assert.equal(view.elements.find(item => item.props.className === 'stg-command-workspace').props.hidden, true)
+  await dockToggle('展开操作区').props.onClick(); await view.settle()
+  assert.equal(view.elements.find(item => item.props.className === 'stg-command-workspace').props.hidden, false)
+  assert.equal(skill().props['aria-pressed'], true, 'collapsing the dock preserves the queued skill')
+  assert.equal(view.elements.find(item => item.type === 'select' && item.text.includes('木灵') && item.text.includes('水灵')).props.value, 1, 'expanding the dock preserves the chosen target')
   assert.equal(view.calls.some(call => call.name === 'battle-act'), false, 'neither selection nor target change advances battle state')
   await view.unmount()
 })

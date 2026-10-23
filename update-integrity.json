@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "name": "dsh-tavern-game",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "files": [
     {
       "path": "LICENSE",
@@ -10,8 +10,8 @@
     },
     {
       "path": "README.md",
-      "size": 9566,
-      "sha256": "0437269c1c86cb913d53691f0d155dbd570c1425c258eb169d062db5ca4afd0b"
+      "size": 10581,
+      "sha256": "e3d8a471052b85c5241cd1e26d11d94c75e4eb0bc191b515cc32113bca968f44"
     },
     {
       "path": "assets/human/audio/attack.wav",
@@ -375,8 +375,8 @@
     },
     {
       "path": "client.js",
-      "size": 169056,
-      "sha256": "ed5087c2bd3e46163135a47b0753cca64fd1d49ace41f9f5e174c3e53d76633f"
+      "size": 185280,
+      "sha256": "e589356ebb1583aa4c9babc6a1ce1019f6a2b04c4f36cc2a7b660c40ae1ab3c1"
     },
     {
       "path": "index.mjs",
@@ -386,7 +386,7 @@
     {
       "path": "package.json",
       "size": 752,
-      "sha256": "0a5412c0792785e1a08b79a2ffaaeac1c88a73b6db41eff0ac5af132abb6a4f0"
+      "sha256": "ff333e3e4610878ac4faa78d0e5fdc9265a682727eeb895a7f9db62106036e14"
     },
     {
       "path": "simple/catalog.mjs",

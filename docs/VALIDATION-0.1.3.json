@@ -1,0 +1,1230 @@
+{
+  "version": "0.1.3",
+  "date": "2026-10-23",
+  "automatedTests": {
+    "passed": 216,
+    "failed": 0
+  },
+  "runtimeCheck": {
+    "modules": 12,
+    "assets": 71
+  },
+  "browserFixtureOnly": true,
+  "story": {
+    "fixtureOnly": true,
+    "explicitEntryOnly": true,
+    "repeatedWordsDeduplicated": true,
+    "prosePreserved": true,
+    "noAudioBeforeEntry": true,
+    "mobileEntry": {
+      "width": 176.296875,
+      "buttonHeight": 44,
+      "viewport": 390
+    },
+    "cancellablePreparation": true,
+    "noLateOpeningAfterCancel": true,
+    "palettesReadyOnSceneDisplay": true,
+    "selectionDoesNotAct": true,
+    "plannedTargetsVisible": true,
+    "resumesSameRound": true,
+    "resumeDoesNotReplayIntro": true,
+    "recapReturnsToComposer": true,
+    "finishedEntryShowsResult": true,
+    "noncombatDoesNotOfferEntry": true,
+    "compactLayouts": [
+      {
+        "viewport": {
+          "width": 2560,
+          "height": 1440
+        },
+        "overlay": {
+          "x": 0,
+          "y": 0,
+          "width": 2560,
+          "height": 1440,
+          "bottom": 1440,
+          "right": 2560
+        },
+        "scene": {
+          "x": 0,
+          "y": 0,
+          "width": 2560,
+          "height": 1440,
+          "bottom": 1440,
+          "right": 2560
+        },
+        "actorStage": {
+          "x": 0,
+          "y": 0,
+          "width": 2560,
+          "height": 1178,
+          "bottom": 1178,
+          "right": 2560
+        },
+        "dock": {
+          "x": 720,
+          "y": 1190,
+          "width": 1120,
+          "height": 242,
+          "bottom": 1432,
+          "right": 1840
+        },
+        "dockScrollWidth": 1118,
+        "uncoveredGutters": [
+          true,
+          true
+        ],
+        "confirm": {
+          "x": 1717,
+          "y": 1379,
+          "width": 112,
+          "height": 44,
+          "bottom": 1423,
+          "right": 1829
+        },
+        "basic": {
+          "x": 971,
+          "y": 1297,
+          "width": 167.59375,
+          "height": 76,
+          "bottom": 1373,
+          "right": 1138.59375
+        },
+        "commandHeights": [
+          44,
+          44,
+          44,
+          44
+        ]
+      },
+      {
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "overlay": {
+          "x": 0,
+          "y": 0,
+          "width": 1440,
+          "height": 900,
+          "bottom": 900,
+          "right": 1440
+        },
+        "scene": {
+          "x": 0,
+          "y": 0,
+          "width": 1440,
+          "height": 900,
+          "bottom": 900,
+          "right": 1440
+        },
+        "actorStage": {
+          "x": 0,
+          "y": 0,
+          "width": 1440,
+          "height": 638,
+          "bottom": 638,
+          "right": 1440
+        },
+        "dock": {
+          "x": 160,
+          "y": 650,
+          "width": 1120,
+          "height": 242,
+          "bottom": 892,
+          "right": 1280
+        },
+        "dockScrollWidth": 1118,
+        "uncoveredGutters": [
+          true,
+          true
+        ],
+        "confirm": {
+          "x": 1157,
+          "y": 839,
+          "width": 112,
+          "height": 44,
+          "bottom": 883,
+          "right": 1269
+        },
+        "basic": {
+          "x": 411,
+          "y": 757,
+          "width": 167.59375,
+          "height": 76,
+          "bottom": 833,
+          "right": 578.59375
+        },
+        "commandHeights": [
+          44,
+          44,
+          44,
+          44
+        ]
+      },
+      {
+        "viewport": {
+          "width": 390,
+          "height": 780
+        },
+        "overlay": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 780,
+          "bottom": 780,
+          "right": 390
+        },
+        "scene": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 780,
+          "bottom": 780,
+          "right": 390
+        },
+        "actorStage": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 340,
+          "bottom": 340,
+          "right": 390
+        },
+        "dock": {
+          "x": 6,
+          "y": 352.8125,
+          "width": 378,
+          "height": 421.1875,
+          "bottom": 774,
+          "right": 384
+        },
+        "dockScrollWidth": 376,
+        "uncoveredGutters": [
+          true,
+          true
+        ],
+        "confirm": {
+          "x": 267,
+          "y": 723,
+          "width": 108,
+          "height": 44,
+          "bottom": 767,
+          "right": 375
+        },
+        "basic": {
+          "x": 15,
+          "y": 523.75,
+          "width": 117.328125,
+          "height": 72,
+          "bottom": 595.75,
+          "right": 132.328125
+        },
+        "commandHeights": [
+          44,
+          44,
+          44,
+          44
+        ]
+      },
+      {
+        "viewport": {
+          "width": 320,
+          "height": 780
+        },
+        "overlay": {
+          "x": 0,
+          "y": 0,
+          "width": 320,
+          "height": 780,
+          "bottom": 780,
+          "right": 320
+        },
+        "scene": {
+          "x": 0,
+          "y": 0,
+          "width": 320,
+          "height": 780,
+          "bottom": 780,
+          "right": 320
+        },
+        "actorStage": {
+          "x": 0,
+          "y": 0,
+          "width": 320,
+          "height": 340,
+          "bottom": 340,
+          "right": 320
+        },
+        "dock": {
+          "x": 6,
+          "y": 352.8125,
+          "width": 308,
+          "height": 421.1875,
+          "bottom": 774,
+          "right": 314
+        },
+        "dockScrollWidth": 306,
+        "uncoveredGutters": [
+          true,
+          true
+        ],
+        "confirm": {
+          "x": 197,
+          "y": 723,
+          "width": 108,
+          "height": 44,
+          "bottom": 767,
+          "right": 305
+        },
+        "basic": {
+          "x": 15,
+          "y": 523.75,
+          "width": 94,
+          "height": 72,
+          "bottom": 595.75,
+          "right": 109
+        },
+        "commandHeights": [
+          44,
+          44,
+          44,
+          44
+        ]
+      }
+    ],
+    "collapsedHeight": 61,
+    "collapsePreservesOrders": true,
+    "pageErrors": []
+  },
+  "browser": {
+    "fixtureOnly": true,
+    "fullWidthBattle": {
+      "viewport": 1440,
+      "viewportHeight": 900,
+      "overlay": {
+        "left": 0,
+        "right": 1440,
+        "width": 1440,
+        "height": 900,
+        "top": 0,
+        "bottom": 900
+      },
+      "battle": {
+        "left": 0,
+        "right": 1440,
+        "width": 1440,
+        "height": 900,
+        "top": 0,
+        "bottom": 900
+      },
+      "scene": {
+        "left": 0,
+        "right": 1440,
+        "width": 1440,
+        "height": 900,
+        "top": 0,
+        "bottom": 900
+      }
+    },
+    "paletteReadyOnFirstPaint": true,
+    "paletteReadyMs": 554,
+    "starterAvatars": [
+      "starter-male",
+      "starter-female"
+    ],
+    "sixPalettesOnFirstPaint": true,
+    "sixPaletteReadyMs": 1119,
+    "constrainedPanelScroll": {
+      "top": 0,
+      "client": 480,
+      "full": 2029,
+      "after": 800
+    },
+    "maxOnlyHost": {
+      "client": 360,
+      "parent": 360,
+      "full": 2029
+    },
+    "mobileScroll": {
+      "client": 380,
+      "full": 10445,
+      "after": 600,
+      "width": 390,
+      "fullWidth": 390
+    },
+    "mobileCommands": [
+      {
+        "label": "战斗",
+        "height": 44
+      },
+      {
+        "label": "背包",
+        "height": 44
+      },
+      {
+        "label": "换人",
+        "height": 44
+      },
+      {
+        "label": "逃离",
+        "height": 44
+      }
+    ],
+    "mobileSpeedGap": 5,
+    "desktopDockGeometry": {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "dock": {
+        "left": 160,
+        "right": 1280,
+        "top": 650,
+        "bottom": 892
+      },
+      "visuals": [
+        {
+          "kind": "visual",
+          "box": {
+            "left": 49.74110412597656,
+            "right": 550.3368072509766,
+            "top": 103.12378692626953,
+            "bottom": 606.534065246582
+          }
+        },
+        {
+          "kind": "visual",
+          "box": {
+            "left": 929.8527221679688,
+            "right": 1390.6351318359375,
+            "top": 90.89045715332031,
+            "bottom": 551.9430694580078
+          }
+        }
+      ],
+      "huds": [
+        {
+          "kind": "hud",
+          "box": {
+            "left": 220.984375,
+            "right": 375.984375,
+            "top": 88.484375,
+            "bottom": 159.78125
+          }
+        },
+        {
+          "kind": "hud",
+          "box": {
+            "left": 1083.140625,
+            "right": 1238.140625,
+            "top": 66.765625,
+            "bottom": 138.0625
+          }
+        }
+      ],
+      "collisions": [],
+      "outOfViewport": []
+    },
+    "mobileDuelDockGeometry": {
+      "viewport": {
+        "width": 320,
+        "height": 780
+      },
+      "dock": {
+        "left": 6,
+        "right": 314,
+        "top": 352.8125,
+        "bottom": 774
+      },
+      "visuals": [
+        {
+          "kind": "visual",
+          "box": {
+            "left": 3.802462100982666,
+            "right": 208.32156610488892,
+            "top": 116.16185760498047,
+            "bottom": 321.8911666870117
+          }
+        },
+        {
+          "kind": "visual",
+          "box": {
+            "left": 119.74356842041016,
+            "right": 315.4085464477539,
+            "top": 98.502685546875,
+            "bottom": 294.18975830078125
+          }
+        }
+      ],
+      "huds": [
+        {
+          "kind": "hud",
+          "box": {
+            "left": 49.78125,
+            "right": 159.78125,
+            "top": 72.546875,
+            "bottom": 140.9375
+          }
+        },
+        {
+          "kind": "hud",
+          "box": {
+            "left": 162.8125,
+            "right": 272.8125,
+            "top": 50.015625,
+            "bottom": 118.40625
+          }
+        }
+      ],
+      "collisions": [],
+      "outOfViewport": []
+    },
+    "mobileSixDockGeometry": {
+      "viewport": {
+        "width": 320,
+        "height": 780
+      },
+      "dock": {
+        "left": 6,
+        "right": 314,
+        "top": 426.0625,
+        "bottom": 774
+      },
+      "visuals": [
+        {
+          "kind": "visual",
+          "box": {
+            "left": 2.779038667678833,
+            "right": 138.24603390693665,
+            "top": 248.13565063476562,
+            "bottom": 383.60784912109375
+          }
+        },
+        {
+          "kind": "visual",
+          "box": {
+            "left": 45.08464431762695,
+            "right": 167.11592483520508,
+            "top": 193.63992309570312,
+            "bottom": 316.24346923828125
+          }
+        },
+        {
+          "kind": "visual",
+          "box": {
+            "left": 80.3752212524414,
+            "right": 188.82980346679688,
+            "top": 127.33169555664062,
+            "bottom": 236.28451538085938
+          }
+        },
+        {
+          "kind": "visual",
+          "box": {
+            "left": 182.55807495117188,
+            "right": 318.4376525878906,
+            "top": 204.49578857421875,
+            "bottom": 341.1824951171875
+          }
+        },
+        {
+          "kind": "visual",
+          "box": {
+            "left": 154.6241455078125,
+            "right": 276.915771484375,
+            "top": 149.14309692382812,
+            "bottom": 272.1611328125
+          }
+        },
+        {
+          "kind": "visual",
+          "box": {
+            "left": 132.69021606445312,
+            "right": 241.3938751220703,
+            "top": 126.5872573852539,
+            "bottom": 235.93661499023438
+          }
+        }
+      ],
+      "huds": [
+        {
+          "kind": "hud",
+          "box": {
+            "left": 15.6875,
+            "right": 125.6875,
+            "top": 193.5,
+            "bottom": 261.890625
+          }
+        },
+        {
+          "kind": "hud",
+          "box": {
+            "left": 55.796875,
+            "right": 154.796875,
+            "top": 146.8953094482422,
+            "bottom": 208.44686889648438
+          }
+        },
+        {
+          "kind": "hud",
+          "box": {
+            "left": 89.90625,
+            "right": 177.90625,
+            "top": 85.72811889648438,
+            "bottom": 140.4406280517578
+          }
+        },
+        {
+          "kind": "hud",
+          "box": {
+            "left": 194.3125,
+            "right": 304.3125,
+            "top": 153.421875,
+            "bottom": 221.8125
+          }
+        },
+        {
+          "kind": "hud",
+          "box": {
+            "left": 165.203125,
+            "right": 264.203125,
+            "top": 103.17655944824219,
+            "bottom": 164.72811889648438
+          }
+        },
+        {
+          "kind": "hud",
+          "box": {
+            "left": 142.09375,
+            "right": 230.09375,
+            "top": 85.72811889648438,
+            "bottom": 140.4406280517578
+          }
+        }
+      ],
+      "collisions": [],
+      "outOfViewport": []
+    },
+    "scrollablePanelChecks": [
+      {
+        "command": "背包",
+        "width": 320,
+        "height": 780,
+        "actorStageBottom": 340,
+        "dockTop": 352.8125,
+        "dockBottom": 774,
+        "confirmBottom": 767,
+        "headerTop": 358.8125,
+        "panelHeight": 212,
+        "panelFull": 707,
+        "items": 3
+      },
+      {
+        "command": "换人",
+        "width": 320,
+        "height": 780,
+        "actorStageBottom": 461,
+        "dockTop": 473,
+        "dockBottom": 774,
+        "confirmBottom": 767,
+        "headerTop": 479,
+        "panelHeight": 92,
+        "panelFull": 92,
+        "items": 0
+      },
+      {
+        "command": "战斗",
+        "width": 320,
+        "height": 780,
+        "actorStageBottom": 414,
+        "dockTop": 426.0625,
+        "dockBottom": 774,
+        "confirmBottom": 767,
+        "headerTop": 432.0625,
+        "panelHeight": 139,
+        "panelFull": 139,
+        "items": 0
+      },
+      {
+        "command": "背包",
+        "width": 780,
+        "height": 390,
+        "actorStageBottom": 136,
+        "dockTop": 148,
+        "dockBottom": 382,
+        "confirmBottom": 373,
+        "headerTop": 156,
+        "panelHeight": 68,
+        "panelFull": 638,
+        "items": 3
+      },
+      {
+        "command": "换人",
+        "width": 780,
+        "height": 390,
+        "actorStageBottom": 158,
+        "dockTop": 170,
+        "dockBottom": 382,
+        "confirmBottom": 373,
+        "headerTop": 178,
+        "panelHeight": 46,
+        "panelFull": 46,
+        "items": 0
+      },
+      {
+        "command": "战斗",
+        "width": 780,
+        "height": 390,
+        "actorStageBottom": 136,
+        "dockTop": 148,
+        "dockBottom": 382,
+        "confirmBottom": 373,
+        "headerTop": 156,
+        "panelHeight": 68,
+        "panelFull": 76,
+        "items": 0
+      },
+      {
+        "command": "背包",
+        "width": 1440,
+        "height": 600,
+        "actorStageBottom": 280,
+        "dockTop": 292,
+        "dockBottom": 592,
+        "confirmBottom": 583,
+        "headerTop": 300,
+        "panelHeight": 134,
+        "panelFull": 638,
+        "items": 3
+      },
+      {
+        "command": "换人",
+        "width": 1440,
+        "height": 600,
+        "actorStageBottom": 368,
+        "dockTop": 380,
+        "dockBottom": 592,
+        "confirmBottom": 583,
+        "headerTop": 388,
+        "panelHeight": 46,
+        "panelFull": 46,
+        "items": 0
+      },
+      {
+        "command": "战斗",
+        "width": 1440,
+        "height": 600,
+        "actorStageBottom": 338,
+        "dockTop": 350,
+        "dockBottom": 592,
+        "confirmBottom": 583,
+        "headerTop": 358,
+        "panelHeight": 76,
+        "panelFull": 76,
+        "items": 0
+      }
+    ],
+    "mobileDockGeometry": {
+      "viewport": {
+        "width": 320,
+        "height": 780
+      },
+      "dock": {
+        "left": 6,
+        "right": 314,
+        "top": 426.0625,
+        "bottom": 774
+      },
+      "visuals": [
+        {
+          "kind": "visual",
+          "box": {
+            "left": 3.9158918857574463,
+            "right": 139.7619001865387,
+            "top": 244.6741943359375,
+            "bottom": 381.3074951171875
+          }
+        },
+        {
+          "kind": "visual",
+          "box": {
+            "left": 44.91368103027344,
+            "right": 166.61138916015625,
+            "top": 194.63888549804688,
+            "bottom": 316.7103271484375
+          }
+        },
+        {
+          "kind": "visual",
+          "box": {
+            "left": 79.63179779052734,
+            "right": 187.98837280273438,
+            "top": 129.3367919921875,
+            "bottom": 237.72344970703125
+          }
+        },
+        {
+          "kind": "visual",
+          "box": {
+            "left": 119.81344604492188,
+            "right": 315.45037841796875,
+            "top": 162.3477020263672,
+            "bottom": 358.0494079589844
+          }
+        }
+      ],
+      "huds": [
+        {
+          "kind": "hud",
+          "box": {
+            "left": 15.6875,
+            "right": 125.6875,
+            "top": 193.5,
+            "bottom": 261.890625
+          }
+        },
+        {
+          "kind": "hud",
+          "box": {
+            "left": 55.796875,
+            "right": 154.796875,
+            "top": 146.8953094482422,
+            "bottom": 208.44686889648438
+          }
+        },
+        {
+          "kind": "hud",
+          "box": {
+            "left": 89.90625,
+            "right": 177.90625,
+            "top": 85.72811889648438,
+            "bottom": 140.4406280517578
+          }
+        },
+        {
+          "kind": "hud",
+          "box": {
+            "left": 162.8125,
+            "right": 272.8125,
+            "top": 113.984375,
+            "bottom": 182.375
+          }
+        }
+      ],
+      "collisions": [],
+      "outOfViewport": []
+    },
+    "smoothIdle": true,
+    "idlePoseStable": true,
+    "hudAttached": true,
+    "speeds": [
+      1,
+      2,
+      3,
+      10
+    ],
+    "speedNearCommands": {
+      "verticalGap": 5,
+      "sameDock": true
+    },
+    "commandSizes": [
+      {
+        "label": "战斗",
+        "height": 44
+      },
+      {
+        "label": "背包",
+        "height": 44
+      },
+      {
+        "label": "换人",
+        "height": 44
+      },
+      {
+        "label": "逃离",
+        "height": 44
+      }
+    ],
+    "skillPanelVisibleAndPersistent": true,
+    "cameraMotion": {
+      "distance": 0.3236486076485224,
+      "pixelTravel": 562.718336422529,
+      "phases": [
+        "wide",
+        "windup",
+        "strike",
+        "impact"
+      ],
+      "travels": [
+        "rest",
+        "approach"
+      ]
+    },
+    "defaultActors": 2,
+    "defaultAvatars": [
+      {
+        "id": "starter-male",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "starter-female",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "jade-swordsman",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "crimson-duelist",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "frost-mage",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "iron-guardian",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "forest-ranger",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "amber-monk",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "moonlit-spear-guard",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "ember-gunslinger",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "azure-healer",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "mountain-exorcist",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "shadow-assassin",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "clockwork-knight",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "storm-lancer",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "desert-falconer",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "beastkeeper",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "star-oracle",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "thunder-priest",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "lingxiao-cultivator",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "dawn-paladin",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "bamboo-alchemist",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "dusk-ronin",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "scarlet-sorceress",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "frost-archer",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "lotus-dancer",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "desert-sentinel",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "violet-assassin",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "scholar-swordsman",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "sun-priestess",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "obsidian-brawler",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "jade-lancer",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "moon-elf-archer",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "dwarven-artificer",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "pirate-captain",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "night-ninja",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "vampire-duelist",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "wandering-bard",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "silver-wolf",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "ember-fox",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "snow-tiger",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "raven-scout",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "azure-eastern-dragon",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "western-dragon",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "qilin",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "xuanwu",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "forest-fae",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "phoenix",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "pegasus",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "griffin",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "unicorn",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "nine-tail-fox",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "thunderbird",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "sea-serpent",
+        "w": 2048,
+        "h": 2048
+      },
+      {
+        "id": "desert-scorpion",
+        "w": 1254,
+        "h": 1254
+      },
+      {
+        "id": "wild-bear",
+        "w": 1254,
+        "h": 1254
+      },
+      {
+        "id": "savanna-lion",
+        "w": 1254,
+        "h": 1254
+      },
+      {
+        "id": "giant-lizard",
+        "w": 1254,
+        "h": 1254
+      },
+      {
+        "id": "golden-staff-warrior",
+        "w": 1254,
+        "h": 1254
+      },
+      {
+        "id": "elder-staff-mage",
+        "w": 1254,
+        "h": 1254
+      }
+    ],
+    "defaultPaletteFilters": [
+      "none",
+      "none"
+    ],
+    "defaultAvatarCounts": {
+      "human": 40,
+      "animal": 20
+    },
+    "pendingAtlasesAllowed": false,
+    "actualCultivatorBundleImported": true,
+    "importedAppearanceKeepsOriginalColors": true,
+    "importedAttackPoseChanges": true,
+    "importedSceneRendered": true,
+    "appearanceAndSceneSurviveReload": true,
+    "roster": 6,
+    "fieldPerSide": 3,
+    "commands": [
+      "战斗",
+      "背包",
+      "换人",
+      "逃离"
+    ],
+    "normalMs": 4691,
+    "fastMs": 617,
+    "generationSavesPartyAndBag": true,
+    "perActorRigAnimates": true,
+    "perActorResourcesSurviveReload": true,
+    "naturalStoryTrigger": true,
+    "naturalStoryReadyMs": 953,
+    "storyEntryRequiresClick": true,
+    "pageErrors": []
+  },
+  "gutterPixels": {
+    "before": [
+      {
+        "side": "left",
+        "flatDarkFraction": 1,
+        "uniqueColors": 1
+      },
+      {
+        "side": "right",
+        "flatDarkFraction": 1,
+        "uniqueColors": 1
+      }
+    ],
+    "after": [
+      {
+        "side": "left",
+        "flatDarkFraction": 0,
+        "uniqueColors": 16199
+      },
+      {
+        "side": "right",
+        "flatDarkFraction": 0,
+        "uniqueColors": 15825
+      }
+    ]
+  },
+  "limits": [
+    "未调用真实供应商或玩家会话",
+    "未自动重启DSH",
+    "配色算法与图片资源未变，未重复全量像素调色验证"
+  ]
+}

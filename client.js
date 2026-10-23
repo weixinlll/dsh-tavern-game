@@ -8,6 +8,7 @@ window.__ModuleLoader__.load({
     const React = require('react')
     const h = React.createElement
     const { useState, useEffect, useRef } = React
+    const useLayoutEffect = React.useLayoutEffect || useEffect
     const PLUGIN = 'dsh-tavern-game'
     const PREFIX = `${PLUGIN}/`
     const CSS = `
@@ -42,6 +43,21 @@ window.__ModuleLoader__.load({
 @media(max-width:360px){.stg-controls-battle .stg-dock-header .stg-round small{display:none}.stg-controls-battle .stg-dock-header{gap:5px}.stg-control-dock .stg-controlbar{gap:4px}}
 .stg-round-plan{display:flex;gap:6px;align-items:stretch;margin-top:6px;flex-wrap:wrap}.stg-round-plan>button{flex:1 1 130px;text-align:left;min-height:42px}.stg-round-plan>button strong,.stg-round-plan>button small{display:block}.stg-round-plan>button[aria-pressed=true]{border-color:#78d6e2;background:#193341}.stg-round-confirm{display:flex;align-items:center;gap:8px;margin-top:6px}.stg-round-confirm small{flex:1;color:#dce6f0}.stg-controls-battle .stg-confirm-round{min-height:44px;min-width:130px;background:#155eef;color:#fff;border-color:#4080f6;font-weight:750}.stg-controls-battle .stg-skills button[aria-pressed=true]{border:2px solid #44bac9;background:#e9fbff}.stg-controls-battle .stg-skills .stg-skill-basic{background:#e9f5f7;border-color:#62b9c5;color:#1b4d57}.stg-controls-battle .stg-skills .stg-skill-basic[aria-pressed=true]{background:#d1f1f4;border-color:#2a9cae}.stg-controls-battle .stg-inventory>small{grid-column:1/-1;color:#c5d6e8;font-size:12px}.stg-controls-battle .stg-inventory{padding:8px 0;border-bottom:1px solid #ffffff28}.stg-generation-model .stg-actions{grid-column:1/-1;flex-wrap:wrap}.stg-generation-model .stg-ai-model{margin-top:7px}
 .stg-controls-battle .stg-skills button:hover:not(:disabled),.stg-controls-battle .stg-skills button[aria-pressed=true]{color:#163647;background:#e9fbff}.stg-controls-battle .stg-skills button strong{color:inherit}
+/* Organic entry surfaces: sand, moss and ochre; the story stays in control. */
+.stg-story-marker{font:inherit;color:inherit}.stg.stg-encounter{display:inline-flex;align-items:center;justify-content:space-between;gap:18px;width:100%;padding:14px 18px;margin:10px 0;border:1px solid #8B9D83;border-radius:18px;background:#E8DCC7;color:#606C38;font:14px/1.45 "Palatino Linotype","Songti SC",serif;vertical-align:middle}.stg-encounter-copy{display:grid;gap:3px;min-width:0}.stg.stg-encounter strong{font-size:15px}.stg.stg-encounter small{color:#606C38;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:32ch}.stg.stg-encounter button{flex:none;min-height:44px;padding:8px 18px;border:1px solid #606C38;border-radius:16px;background:#606C38;color:#E8DCC7;font-weight:700}.stg.stg-encounter button:hover:not(:disabled){border-color:#C08E3A;background:#C08E3A;color:#E8DCC7}.stg-encounter[data-inline=true]{width:auto;max-width:100%;padding:4px 6px 4px 12px;margin:2px 6px;gap:12px}.stg-encounter[data-inline=true] strong{display:none}.stg-encounter[data-inline=true] small{max-width:16ch}.stg-story-entry-error{display:inline-block;color:#C66B3D;font:12px/1.5 system-ui,sans-serif;margin-inline-start:6px}
+.stg-overlay.stg-battle-gate{display:grid;place-items:center;padding:24px;background:#606C38!important;color:#E8DCC7!important;font-family:"Palatino Linotype","Songti SC",serif}.stg-battle-gate:before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.03;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.7' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Cpath fill='%23E8DCC7' filter='url(%23n)' d='M0 0h180v180H0z'/%3E%3C/svg%3E")}.stg-gate-card{position:relative;display:grid;gap:16px;width:min(100%,440px);padding:32px;border:1px solid #8B9D83;border-radius:24px;background:#E8DCC7;color:#606C38;animation:stg-gate-in .35s ease both}.stg-gate-card h2{font-size:30px;line-height:1.25}.stg-gate-card small{color:#606C38}.stg-gate-card p{margin:0}.stg-gate-card progress{width:100%;height:7px;accent-color:#C08E3A}.stg-gate-card button{min-height:44px;padding:9px 16px;border:1px solid #8B9D83;border-radius:16px;background:#D4B895;color:#606C38}.stg-gate-card .stg-gate-error{color:#C66B3D}.stg-battle[data-entering=true] .stg-entry{pointer-events:none}
+.stg-gate-art{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.24}.stg-battle .stg-entry{inset:12px 20% auto;gap:3px;padding:10px 16px;border-radius:18px;background:#606C38d9;color:#E8DCC7;text-shadow:none;max-height:100px}.stg-battle .stg-entry strong{font-size:clamp(18px,2.4vw,28px);letter-spacing:.02em}.stg-battle .stg-entry span{font-size:12px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#E8DCC7}
+@keyframes stg-gate-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}@media(max-width:420px){.stg-gate-card{padding:24px}.stg-encounter[data-inline=true] small{max-width:10ch}.stg.stg-encounter button{padding-inline:12px}}@media(prefers-reduced-motion:reduce){.stg-gate-card{animation:none}}
+.stg-controls-battle.stg-control-dock{align-self:center;width:min(100%,1120px);max-height:50dvh;border:1px solid #ffffff40;border-bottom:0;border-radius:12px 12px 0 0;padding:7px 10px calc(8px + env(safe-area-inset-bottom))}.stg-command-workspace{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;align-items:center}.stg-command-workspace[hidden]{display:none}.stg-controls-battle .stg-commandrow,.stg-controls-battle .stg-commandpanel{grid-column:1/-1;margin:0}.stg-controls-battle .stg-commandrow>button{min-height:44px}.stg-controls-battle .stg-commandpanel{padding:0;border:0;background:transparent;min-width:0}.stg-controls-battle .stg-commandpanel-fight{display:grid;grid-template-columns:230px minmax(0,1fr);gap:10px;align-items:center}.stg-controls-battle .stg-skills{display:flex;flex-wrap:wrap;gap:5px;padding:0}.stg-controls-battle .stg-skills>button{flex:1 1 120px;width:auto;max-width:210px;min-height:76px;font-size:13px;padding:6px 8px}.stg-controls-battle .stg-skills>button small{font-size:11px}.stg-controls-battle .stg-commandpanel-fight select{min-height:38px}.stg-controls-battle .stg-targets{align-self:start;margin-top:6px}.stg-controls-battle .stg-round-plan{margin:0;min-width:0;gap:5px;flex-wrap:nowrap}.stg-controls-battle .stg-round-plan>button{flex:1 1 100px;min-width:0;max-width:150px;min-height:44px;padding:4px 8px;font-size:12px}.stg-round-plan>button strong,.stg-round-plan>button small{overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.stg-round-plan>button small{font-size:11px;color:#b8cadb}.stg-controls-battle .stg-round-confirm{margin:0;gap:6px}.stg-round-confirm small{max-width:190px;font-size:11px;line-height:1.3}.stg-round-confirm>button{min-height:44px;padding:5px 10px}.stg-controls-battle .stg-confirm-round{min-width:112px}.stg-controls-battle .stg-dock-header .stg-round small{max-width:46%}.stg-controls-battle .stg-controlbar .stg-dock-toggle{display:grid;place-items:center;width:44px;min-width:44px;padding:8px}.stg-dock-toggle svg{width:20px;height:20px;stroke:currentColor;stroke-width:2;fill:none}.stg-dock-toggle[aria-expanded=false] svg{transform:rotate(180deg)}.stg-control-dock:has(.stg-command-workspace[hidden]){overflow:visible}.stg-control-dock:has(.stg-command-workspace[hidden]) .stg-dock-header{margin:0}
+@media(max-width:850px){.stg-controls-battle .stg-commandpanel-fight{grid-template-columns:190px minmax(0,1fr);gap:8px}.stg-controls-battle .stg-skills>button{flex-basis:100px}.stg-command-workspace{grid-template-columns:minmax(0,1fr)}.stg-controls-battle .stg-round-plan>button{max-width:180px}.stg-controls-battle .stg-round-confirm{justify-content:flex-end}.stg-round-confirm small{max-width:none;margin-right:auto}.stg-controls-battle .stg-round-confirm{grid-column:1/-1}}
+@media(max-width:600px){.stg-controls-battle.stg-control-dock{max-height:54dvh;border-radius:0;padding:5px 8px calc(6px + env(safe-area-inset-bottom))}.stg-command-workspace{gap:5px}.stg-controls-battle .stg-commandrow{grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}.stg-controls-battle .stg-commandrow>button{font-size:12px;gap:4px;padding:5px 3px;border-left-width:3px}.stg-controls-battle .stg-commandrow svg{width:16px;height:16px}.stg-controls-battle .stg-commandpanel-fight{grid-template-columns:minmax(0,1fr);gap:5px}.stg-controls-battle .stg-targets{margin:0}.stg-controls-battle .stg-commandpanel-fight select{min-height:44px;font-size:12px}.stg-controls-battle .stg-skills{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}.stg-controls-battle .stg-skills>button{max-width:none;min-height:72px;padding:5px;font-size:12px}.stg-controls-battle .stg-skills>button small{font-size:10px}.stg-controls-battle .stg-dock-header .stg-round small{display:none}.stg-controls-battle .stg-controlbar .stg-toolbutton{min-width:56px;padding:5px}.stg-controls-battle .stg-speedtrigger{min-width:54px}.stg-controls-battle .stg-round-plan>button{max-width:none;font-size:11px;padding:4px 6px}.stg-controls-battle .stg-round-plan>button small{font-size:10px}.stg-controls-battle .stg-confirm-round{min-width:108px}.stg-round-confirm small{font-size:10px}}
+@media(max-width:420px){.stg-controls-battle .stg-dock-header .stg-round span{display:none}.stg-controls-battle .stg-dock-header .stg-round strong{font-size:12px}}
+.stg-controls-battle.stg-control-dock{display:flex;flex-direction:column;min-height:0;overflow:visible}.stg-control-dock .stg-dock-header{flex:none}.stg-command-workspace{flex:1;min-height:0;grid-template-rows:auto minmax(0,1fr) auto}.stg-controls-battle .stg-commandpanel{min-height:0;overflow-y:auto;align-self:stretch}.stg-controls-battle .stg-skills>button{line-height:1.2}.stg-controls-battle .stg-skills .stg-matchup{-webkit-line-clamp:1;max-height:1.2em}.stg-round-confirm small{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}.stg-control-dock:has(.stg-result){overflow-y:auto}
+@media(max-width:850px){.stg-command-workspace{grid-template-rows:auto minmax(0,1fr) auto auto}}
+@media(min-width:601px) and (max-width:850px){.stg-command-workspace{grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto minmax(0,1fr) auto}.stg-controls-battle .stg-round-confirm{grid-column:auto}.stg-round-confirm small{max-width:110px}.stg-controls-battle .stg-round-plan>button{max-width:150px}}
+@media(min-width:601px) and (max-height:500px){.stg-controls-battle.stg-control-dock{max-height:60dvh}}
+.stg-battle{position:relative;display:block}.stg-battle>.stg-scene{position:absolute;inset:0;width:100%;height:100%;min-height:0}.stg-actor-stage{position:absolute;inset:0 0 var(--stg-dock-space,54dvh);container-type:size}.stg-camera-stage{transform-origin:50% calc((100% - var(--stg-dock-space,54dvh)) / 2)}.stg-controls-battle.stg-control-dock{position:absolute;inset:auto auto 8px 50%;transform:translateX(-50%);width:min(calc(100% - 24px),1120px);border:1px solid #ffffff50;border-radius:14px;background:#101722d4;backdrop-filter:blur(10px)}.stg-battle .stg-caption{bottom:calc(var(--stg-dock-space,54dvh) + 12px)}.stg-scene:after{background:linear-gradient(180deg,#09111a40,transparent 32%,#09111a40)}
+@media(max-width:600px){.stg-controls-battle.stg-control-dock{bottom:6px;width:calc(100% - 12px);border-radius:12px}}
 `
 
     const route = (name) => `${PREFIX}${name}`
@@ -63,6 +79,13 @@ window.__ModuleLoader__.load({
     ]
     const sceneKey = gameId => `dsh-battle-scene:${gameId}`
     const sceneChoice = gameId => { try { const id = localStorage.getItem(sceneKey(gameId)); return BUILTIN_SCENES.some(scene => scene.id === id) ? id : '' } catch (_) { return '' } }
+    const battleScene = (ctx, gameId, state) => {
+      const battle = state?.battle || state || {}, packId = battle.packId || state?.packId || ''
+      const packName = array(state?.packs).find(pack => pack.id === packId)?.name || ''
+      const scenes = /fantasy|玄幻|西幻|仙侠/i.test(`${packId} ${packName}`) ? BUILTIN_SCENES.slice(1) : [BUILTIN_SCENES[0], ...BUILTIN_SCENES.slice(2)]
+      const hash = [...String(battle.id || gameId || '')].reduce((value, character) => (value * 31 + character.charCodeAt(0)) >>> 0, 0)
+      return ctx.tavernUi.assetUrl(`human/scene/${sceneChoice(gameId) || scenes[hash % scenes.length].id}.png`)
+    }
     const inProgress = (view) => !!(view?.readOnly || view?.turnState?.busy || view?.turnState?.generating || view?.turnState?.settling)
     const failureText = (error, fallback) => {
       const text = String(error?.code || '') + ' ' + String(error?.message || '')
@@ -358,7 +381,7 @@ window.__ModuleLoader__.load({
       for (const character of `legacy-palette\u0000${actor?.id || ''}\u0000${actor?.name || ''}\u0000${actor?.avatarId || ''}\u0000${actor?.avatarHue ?? ''}`) value = Math.imul(value ^ character.codePointAt(0), 0x01000193) >>> 0
       return value || 0x9e3779b9
     }
-    const prepareBattlePalettes = async (ctx, initial) => {
+    const prepareBattlePalettes = async (ctx, initial, onProgress = () => {}) => {
       const state = initial || {}, battle = state.battle || state, catalog = state.avatarCatalog || DEFAULT_AVATARS
       const party = array(battle.party).slice(0, 6).map(actor => ({ ...actor, avatarPaletteSeed: paletteSeedFor(actor) }))
       const enemies = array(battle.enemies).slice(0, 6).map(actor => ({ ...actor, avatarPaletteSeed: paletteSeedFor(actor) }))
@@ -374,7 +397,12 @@ window.__ModuleLoader__.load({
         return { id, source: ctx.tavernUi.assetUrl(avatarAssetPath(avatarId)), seed: actor.avatarPaletteSeed, category: catalog[avatarId]?.category || 'human' }
       })
       const sprites = {}
-      const ready = await Promise.allSettled(rows.map(async row => ({ ...row, url: await recolorDefaultAtlas(row.source, row.seed, row.category) })))
+      let completed = 0
+      onProgress(0, rows.length)
+      const ready = await Promise.allSettled(rows.map(async row => {
+        try { return { ...row, url: await recolorDefaultAtlas(row.source, row.seed, row.category) } }
+        finally { onProgress(++completed, rows.length) }
+      }))
       for (const result of ready) if (result.status === 'fulfilled') {
         const row = result.value
         sprites[row.id] = { key: `${row.source}|${row.seed}|${row.category}`, url: row.url }
@@ -382,14 +410,60 @@ window.__ModuleLoader__.load({
       const preparedBattle = { ...battle, party, enemies }
       return { initial: state.battle ? { ...state, battle: preparedBattle } : preparedBattle, sprites }
     }
+    const battleOverlays = new Map()
     const openBattleOverlay = async (ctx, gameId, initial) => {
-      const prepared = await prepareBattlePalettes(ctx, initial)
+      if (battleOverlays.has(gameId)) return
+      const opening = {}
+      const trigger = typeof document !== 'undefined' ? document.activeElement : null
+      battleOverlays.set(gameId, opening)
+      const release = () => { if (battleOverlays.get(gameId) === opening) { battleOverlays.delete(gameId); if (trigger?.isConnected) trigger.focus?.({ preventScroll: true }) } }
       try {
-        ctx.tavernUi.openOverlay({ gameId, render: ({ gameId: overlayGameId, close }) => h(BattleOverlay, { ctx, gameId: overlayGameId, initial: prepared.initial, initialPalettes: prepared.sprites, close }) })
+        ctx.tavernUi.openOverlay({ gameId, onClose: release, render: ({ gameId: overlayGameId, close }) => h(BattleGate, { ctx, gameId: overlayGameId, initial, close: () => { release(); close() } }) })
       } catch (error) {
-        for (const entry of Object.values(prepared.sprites)) URL.revokeObjectURL(entry.url)
+        release()
         throw error
       }
+    }
+    function BattleGate({ ctx, gameId, initial, close }) {
+      const [prepared, setPrepared] = useState(null)
+      const [progress, setProgress] = useState({ done: 0, total: 0 })
+      const [error, setError] = useState('')
+      useEffect(() => {
+        let active = true, owned = null
+        const release = () => { for (const entry of Object.values(owned?.sprites || {})) URL.revokeObjectURL(entry.url) }
+        const prepare = async () => {
+          try {
+            owned = await prepareBattlePalettes(ctx, initial, (done, total) => { if (active) setProgress({ done, total }) })
+            if (!active) { release(); return }
+            if (typeof Image !== 'undefined') {
+              const image = new Image()
+              image.src = battleScene(ctx, gameId, initial)
+              try { await image.decode() } catch (_) { /* A missing backdrop must not hide combat controls. */ }
+              if (!active) { release(); return }
+            }
+            const expected = initial?.battle || initial
+            if (!expected.demo) {
+              const latest = unpack(await routeCall(ctx.tavernUi, 'battle-state', { gameId }))
+              if (latest?.battle?.id !== expected.id || latest.battle.seq !== expected.seq || (!expected.outcome && (latest.battle.readOnly || inProgress(latest)))) throw new Error('正文或战斗已更新，请返回正文，重新点击战斗入口。')
+            }
+            if (active) setPrepared(owned)
+            else release()
+          } catch (e) { release(); if (active) setError(e?.message || '场景准备失败，请返回正文后重试。') }
+        }
+        prepare()
+        return () => { active = false; release() }
+      }, [gameId, initial])
+      if (prepared) return h(BattleOverlay, { ctx, gameId, initial: prepared.initial, initialPalettes: prepared.sprites, close })
+      const battle = initial?.battle || initial || {}
+      return h('div', { className: 'stg stg-overlay stg-battle-gate', 'aria-label': '准备战斗场景' }, h(Style),
+        h('div', { className: 'stg-gate-art', style: { backgroundImage: `url("${battleScene(ctx, gameId, initial)}")` }, 'aria-hidden': true }),
+        h('section', { className: 'stg-gate-card', 'aria-busy': !error }, h('small', null, battle.demo ? '战斗演练' : '剧情战斗'),
+          h('h2', null, error ? '暂时无法进入' : '准备战斗场景'),
+          h('p', null, array(battle.enemies).slice(0, 3).map(actor => actor.name).join('、')),
+          error ? h('p', { role: 'alert', className: 'stg-gate-error' }, error) : h(React.Fragment, null,
+            h('progress', { value: progress.done, max: progress.total || 1, 'aria-label': '角色外观准备进度' }),
+            h('p', { role: 'status' }, progress.total && progress.done < progress.total ? `正在准备角色外观 ${progress.done}/${progress.total}` : '正在确认战场…')),
+          h('button', { type: 'button', autoFocus: true, onClick: close }, '返回正文')))
     }
 // SKELETON_BEGIN
 const RIG_MODES = ['idle', 'attack', 'hit', 'cast', 'guard', 'dodge', 'down', 'victory'];
@@ -999,13 +1073,16 @@ function layeredRigTemplate() {
       const reportMusic = status => { musicStatus.current = status; if (alive.current) setMusicState(status) }
       const [speed, setSpeed] = useState(1)
       const [speedMenuOpen, setSpeedMenuOpen] = useState(false)
+      const [controlsOpen, setControlsOpen] = useState(true)
       const playbackRate = useRef(1)
       playbackRate.current = speed
-      const [entering, setEntering] = useState(!initial?.battle?.outcome)
+      const [entering, setEntering] = useState(!(initial?.battle || initial)?.outcome && Number((initial?.battle || initial)?.seq || 0) === 0)
       const op = useRef(0)
       const alive = useRef(true)
       const actionLock = useRef(false)
       const sceneRef = useRef(null)
+      const actorStageRef = useRef(null)
+      const dockRef = useRef(null)
       const figureRefs = useRef(new Map())
       const pendingPauses = useRef(new Map())
       const impactSequence = useRef(0)
@@ -1055,6 +1132,21 @@ function layeredRigTemplate() {
       const [motion, setMotion] = useState({ actorId: '', frame: 0, mode: '' })
       const [idleFrame, setIdleFrame] = useState(3)
       const locked = busy || inProgress(battle) || inProgress(view) || turnState.busy || turnState.generating || turnState.settling
+
+      useLayoutEffect(() => {
+        const scene = sceneRef.current, dock = dockRef.current
+        if (!scene || !dock) return
+        let lastSpace = -1
+        const measure = () => {
+          const space = Math.ceil(scene.getBoundingClientRect().bottom - dock.getBoundingClientRect().top + 12)
+          if (space !== lastSpace) { scene.style.setProperty('--stg-dock-space', `${space}px`); lastSpace = space }
+        }
+        measure()
+        const observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(measure) : null
+        observer?.observe(dock); observer?.observe(scene)
+        window.addEventListener?.('resize', measure)
+        return () => { observer?.disconnect(); window.removeEventListener?.('resize', measure) }
+      }, [])
 
       const stopAudio = () => {
         const a = audio.current
@@ -1239,7 +1331,7 @@ function layeredRigTemplate() {
         }
       }
       const animateEvents = async (events) => {
-        const sceneBox = sceneRef.current?.getBoundingClientRect()
+        const sceneBox = actorStageRef.current?.getBoundingClientRect()
         const points = new Map()
         if (sceneBox?.width && sceneBox.height) for (const [id, node] of figureRefs.current) {
           const rect = node?.querySelector('.stg-visual')?.getBoundingClientRect()
@@ -1370,13 +1462,7 @@ function layeredRigTemplate() {
         soundWanted.current = true; setSound(true)
         play('human/audio/battle-loop.wav', true, true)
       }
-      const packId = battle.packId || view.packId || ''
-      const packName = array(view.packs).find((pack) => pack.id === packId)?.name || ''
-      const fantasyScene = /fantasy|玄幻|西幻|仙侠/i.test(`${packId} ${packName}`)
-      const chosenScene = sceneChoice(gameId)
-      const hashScene = [...String(battle.id || gameId || '')].reduce((value, character) => (value * 31 + character.charCodeAt(0)) >>> 0, 0)
-      const defaultScenes = fantasyScene ? BUILTIN_SCENES.slice(1) : [BUILTIN_SCENES[0], ...BUILTIN_SCENES.slice(2)]
-      const scene = media.scene || ctx.tavernUi.assetUrl(`human/scene/${chosenScene || defaultScenes[hashScene % defaultScenes.length].id}.png`)
+      const scene = media.scene || battleScene(ctx, gameId, view)
       const spriteGender = actor => explicitGender(actor) || (avatarCatalog[avatarFor(actor)]?.gender === 'female' ? 'female' : 'male')
       const isPortrait = (actor, source) => (!!media[`${actor?.id}:texture`] && !media[`${actor?.id}:rig`]) || /\/adventurer-(?:male|female)-v2\.png(?:$|[?#])/.test(source)
       const spriteUrl = (actor, enemy = false) => {
@@ -1428,13 +1514,14 @@ function layeredRigTemplate() {
       const useItem = (item, target) => queueAction({ type: 'item', actorIndex: actingFieldIndex, itemId: item.id, targetIndex: target })
       const orderLabel = order => !order ? '等待选择' : order.type === 'switch' ? `换上 ${players[order.index]?.name || '队友'}`
         : order.type === 'item' ? `${inventory.find(item => item.id === order.itemId)?.name || '物品'} → ${players[order.targetIndex]?.name || ''}`
-          : order.type === 'basic' ? '普通攻击'
-            : `${array(players[order.actorIndex]?.skills).find(skill => skill.id === order.skillId)?.name || '技能'}`
+          : order.type === 'basic' ? `普通攻击 → ${enemies[order.targetIndex]?.name || '对手'}`
+            : (() => { const skill = array(players[order.actorIndex]?.skills).find(skill => skill.id === order.skillId); return `${skill?.name || '技能'}${['heal', 'selfStatus', 'cleanse', 'revive', 'summon'].includes(skill?.kind) ? '' : ` → ${enemies[order.targetIndex]?.name || '对手'}`}` })()
       const plannedCount = availablePlayers.filter(index => planned[index]).length
       return h('div', { className: 'stg stg-overlay', onPointerDownCapture: playNow, onKeyDownCapture: playNow }, h(Style), h('div', { className: 'stg-battle', style: { '--playback-rate': speed }, 'data-entering': entering },
         h('section', { ref: sceneRef, className: 'stg-scene', 'data-shot': camera.phase, style: { backgroundImage: `url("${scene}")` }, onPointerDown: playNow },
           h('div', { className: 'stg-camera-stage', 'data-phase': camera.phase, style: { transform: `translate3d(${camera.x}%,${camera.y}%,0) scale(${camera.zoom})` } },
           h('div', { className: 'stg-camera-world', 'data-impact': camera.phase === 'impact' && speed < 10, style: { backgroundImage: `url("${scene}")` } },
+          h('div', { ref: actorStageRef, className: 'stg-actor-stage' },
           h('div', { className: 'stg-fighters' },
             playerActors.length ? h('div', { className: 'stg-side', 'data-count': playerActors.length }, playerActors.map(actor => {
               const key = actor.id || actor.name
@@ -1449,10 +1536,10 @@ function layeredRigTemplate() {
               return h('div', { key, ...movingFigure(actor), className: 'stg-figure', 'data-avatar': media[`${actor.id}:texture`] ? 'imported' : avatarFor(actor), 'data-palette-seed': actor.avatarPaletteSeed ?? '', 'data-palette-ready': source.startsWith('blob:') ? 'true' : 'false', 'data-mirror': true, 'data-act': modeFor(actor), 'data-frame': frameFor(actor), 'data-down': actorHp(actor) <= 0 },
                 h('div', { className: 'stg-visual', style: visualStyle(actor, source) }, isPortrait(actor, source) ? h('img', { src: source, alt: actor.name }) : rigFor(actor, true) ? rigFigure(actor, true) : h('div', { className: 'stg-sprite', 'data-frame': frameFor(actor), 'data-mode': '', style: { '--sheet': `url("${source}")` } },
                   h('img', { className: 'stg-sheet', src: source, alt: '', onError: () => setFailedSprites(previous => ({ ...previous, [source]: true })) }))), h(ActorHud, { actor: presentActor(actor), elementCatalog: view.elementCatalog }), impactNumber(actor))
-            })) : null))),
-          entering ? h('div', { className: 'stg-entry', role: 'status' }, h('strong', null, battle.demo ? '战斗演练' : '遭遇：' + enemies.map(actor => actor.name).slice(0, 3).join('、')), h('span', null, '进入回合制战斗')) : null,
+            })) : null)))),
+          entering ? h('div', { className: 'stg-entry', role: 'status' }, h('strong', null, battle.demo ? '战斗演练' : '战斗开始'), h('span', null, enemies.map(actor => actor.name).slice(0, 3).join('、'))) : null,
           caption ? h('div', { key: caption, className: 'stg-caption' }, caption) : null),
-        h('section', { className: 'stg-controls-battle stg-control-dock' },
+        h('section', { ref: dockRef, className: 'stg-controls-battle stg-control-dock' },
           h('div', { className: 'stg-dock-header' },
             h('div', { className: 'stg-round' }, h('strong', null, finished ? '战斗结束' : `第 ${Number(battle.round) || 1} 回合`), h('span', null, active?.name || ''), h('small', null, error || (inProgress(view) ? '状态正在更新。' : busy ? '行动演出中…' : battle.aiNotice || '')), error === '状态已变化，请刷新状态后重试。' ? h('button', { disabled: busy, onClick: refreshBattle }, '刷新状态') : null),
             h('div', { className: 'stg-controlbar' },
@@ -1461,15 +1548,16 @@ function layeredRigTemplate() {
               speedMenuOpen ? h('div', { id: 'stg-speed-options', className: 'stg-speedmenu', role: 'group', 'aria-label': '战斗倍速选项' },
                 [1, 2, 3, 10].map(value => h('button', { key: value, type: 'button', 'aria-pressed': speed === value, onClick: () => { setSpeed(value); setSpeedMenuOpen(false) } }, `${value}×`))) : null),
             h('button', { className: 'stg-toolbutton', onClick: toggleSound, 'aria-label': '战斗音乐', 'aria-pressed': musicState === 'playing', title: musicState === 'blocked' ? '浏览器阻止了自动播放，点击或操作战斗即可开启' : musicState === 'error' ? '音频未能加载，点击重试或重新导入音乐' : '开启或关闭战斗音乐' }, !sound ? '音乐关' : musicState === 'playing' ? '音乐开' : musicState === 'starting' ? '音乐加载中' : musicState === 'blocked' ? '开启音乐' : '音乐重试'),
+            !finished ? h('button', { className: 'stg-dock-toggle', type: 'button', 'aria-label': controlsOpen ? '收起操作区' : '展开操作区', 'aria-expanded': controlsOpen, 'aria-controls': 'stg-command-workspace', title: controlsOpen ? '收起操作区，看完整场景' : '展开操作区，继续选择行动', onClick: () => { setControlsOpen(open => !open); setSpeedMenuOpen(false) } }, h('svg', { viewBox: '0 0 24 24', 'aria-hidden': true }, h('path', { d: 'm6 9 6 6 6-6' }))) : null,
             h('button', { className: 'stg-toolbutton', onClick: close, 'aria-label': '关闭战斗', title: '关闭战斗' }, '关闭'))),
           finished ? h('div', { className: 'stg-result' }, `${battle.outcome.winner === 'player' ? '战斗胜利' : battle.outcome.winner === 'enemy' ? '战斗失败' : '战斗结束'}${battle.outcome.reason ? ` · ${battle.outcome.reason}` : ''}`) : null,
-          !finished ? h(React.Fragment, null,
+          !finished ? h('div', { className: 'stg-command-workspace', id: 'stg-command-workspace', hidden: !controlsOpen },
             h('div', { className: 'stg-commandrow' },
               h('button', { disabled: locked, 'aria-expanded': command === 'fight', onClick: () => setCommand('fight') }, h(CommandIcon, { name: 'fight' }), '战斗'),
               h('button', { disabled: locked, 'aria-expanded': command === 'bag', onClick: () => setCommand(command === 'bag' ? 'fight' : 'bag') }, h(CommandIcon, { name: 'bag' }), '背包'),
               h('button', { disabled: locked, 'aria-expanded': command === 'swap', onClick: () => setCommand(command === 'swap' ? 'fight' : 'swap') }, h(CommandIcon, { name: 'swap' }), '换人'),
               h('button', { disabled: locked, 'aria-expanded': command === 'flee', onClick: () => setCommand('flee') }, h(CommandIcon, { name: 'flee' }), '逃离')),
-            command === 'fight' ? h('div', { className: 'stg-commandpanel' },
+            command === 'fight' ? h('div', { className: 'stg-commandpanel stg-commandpanel-fight' },
               h('div', { className: 'stg-targets' }, h('label', null, '行动角色 ', h('select', { disabled: locked, value: actingFieldIndex, onChange: e => setActingIndex(Number(e.target.value)) }, livingFieldPlayers.map(({ actor, index }) => h('option', { key: actor.id || index, value: index, disabled: !availablePlayers.includes(index) }, `${actor.name || `队友${index + 1}`}${availablePlayers.includes(index) ? '' : '（已行动）'}`)))),
                 h('label', null, '攻击目标 ', h('select', { disabled: locked, value: chosenTargetIndex, onChange: e => { const index = Number(e.target.value); setTargetIndex(index); if (['skill', 'basic'].includes(planned[actingFieldIndex]?.type)) setPlanned(previous => ({ ...previous, [actingFieldIndex]: { ...previous[actingFieldIndex], targetIndex: index } })) } }, livingEnemies.map(({ actor, index }) => h('option', { key: actor.id || index, value: index }, actor.name || `敌人${index + 1}`))))),
               h('div', { className: 'stg-skills' }, h('button', { key: 'basic', className: 'stg-skill-basic', disabled: locked, 'aria-pressed': planned[actingFieldIndex]?.type === 'basic', title: '不消耗资源或特殊技能次数的基础攻击', onClick: () => queueAction({ type: 'basic', actorIndex: actingFieldIndex, targetIndex: chosenTargetIndex }) }, h('strong', null, '普通攻击'), h('small', null, '基础行动 · 无消耗')), skills.slice(0, 4).map((skill) => {
@@ -1487,7 +1575,7 @@ function layeredRigTemplate() {
             command === 'swap' ? h('div', { className: 'stg-commandpanel' }, livingPlayers.some(({ index }) => !playerField.includes(index)) ? livingPlayers.filter(({ index }) => !playerField.includes(index)).map(({ actor: member, index }) => h('button', { key: member.id || index, disabled: locked, onClick: () => queueAction({ type: 'switch', actorIndex: actingFieldIndex, index }) }, `换上 ${member.name || `队友${index + 1}`}`)) : h('small', null, '没有可换上的后备队友。')) : null,
             command === 'flee' ? h('div', { className: 'stg-commandpanel' }, h('p', null, '退出当前战斗？'), h('button', { disabled: locked, onClick: () => submitAction({ type: 'flee', actorIndex: actingFieldIndex }) }, '确认逃离')) : null,
             h('div', { className: 'stg-round-plan', 'aria-label': '本回合指令' }, availablePlayers.map(index => h('button', { key: players[index]?.id || index, disabled: locked, 'aria-pressed': actingFieldIndex === index, onClick: () => { setActingIndex(index); if (planned[index]?.targetIndex !== undefined) setTargetIndex(planned[index].targetIndex); setCommand('fight') } }, h('strong', null, players[index]?.name || '队友'), h('small', null, orderLabel(planned[index]))))),
-            h('div', { className: 'stg-round-confirm' }, h('small', null, busy ? '本回合演出中…' : `${plannedCount}/${availablePlayers.length} 人已选 · 确认后按先制与速度统一行动`), h('button', { disabled: locked || !plannedCount, onClick: () => setPlanned({}) }, '清空'), h('button', { className: 'stg-confirm-round', disabled: locked || plannedCount !== availablePlayers.length || !plannedCount, onClick: () => submitAction({ type: 'round', commands: availablePlayers.map(index => planned[index]) }) }, '确认本回合'))) : null,
+            h('div', { className: 'stg-round-confirm' }, h('small', { role: 'status' }, busy ? '本回合演出中…' : `${plannedCount}/${availablePlayers.length} 人已选 · ${plannedCount === availablePlayers.length ? '指令已齐，可修改后确认' : `请为${availablePlayers.filter(index => !planned[index]).map(index => players[index]?.name).join('、')}选择行动`}`), h('button', { disabled: locked || !plannedCount, onClick: () => setPlanned({}) }, '清空'), h('button', { className: 'stg-confirm-round', disabled: locked || plannedCount !== availablePlayers.length || !plannedCount, onClick: () => submitAction({ type: 'round', commands: availablePlayers.map(index => planned[index]) }) }, '确认本回合'))) : null,
           array(battle.log).length ? h('div', { className: 'stg-log' }, array(battle.log).slice(-4).map((line, i) => h('div', { key: i }, typeof line === 'string' ? line : line.text || line.message || ''))) : null,
           finished ? h(React.Fragment, null,
             !battle.demo && summary ? h('textarea', { className: 'stg-summary', value: summary, onChange: (e) => setSummary(e.target.value), 'aria-label': '战况摘要' }) : null,
@@ -1495,72 +1583,90 @@ function layeredRigTemplate() {
           ) : null)))
     }
 
-    const autoEnteredBattles = new Set()
-    const autoEntryRequests = new Map()
+    const storyEntryRequests = new Map()
+    const encounterSlots = new Map()
+    let encounterSequence = 0
     const storyBattleReady = (ctx, gameId, turn, textVersion) => {
       const key = `${gameId}:${turn}:${textVersion}`
-      if (autoEntryRequests.has(key)) return autoEntryRequests.get(key)
+      if (storyEntryRequests.has(key)) return storyEntryRequests.get(key)
       const request = (async () => {
         for (const delay of [0, 120, 240, 400, 700, 900]) {
           if (delay) await new Promise(resolve => setTimeout(resolve, delay))
           const state = unpack(await routeCall(ctx.tavernUi, 'battle-state', { gameId }))
           const fight = state?.battle
           if (state?.turnState && (state.turnState.turn !== turn || state.turnState.textVersion !== textVersion || state.turnState.generating || state.turnState.settling)) return null
-          if (fight?.id?.startsWith('story-') && fight.turn === turn && fight.textVersion === textVersion && !fight.outcome && !fight.readOnly) return state
+          if (fight?.id?.startsWith('story-') && fight.turn === turn && fight.textVersion === textVersion && !fight.readOnly) return state
         }
         return null
-      })().finally(() => autoEntryRequests.delete(key))
-      autoEntryRequests.set(key, request)
+      })().finally(() => storyEntryRequests.delete(key))
+      storyEntryRequests.set(key, request)
       return request
     }
     function EncounterBadge({ ctx, gameId, turn, streaming, match }) {
       const [busy, setBusy] = useState(false)
       const [error, setError] = useState('')
       const natural = typeof match === 'string' && !/^<dsh_battle>|^battle###|^\{\s*"enemies"\s*:/i.test(match)
-      const [ready, setReady] = useState(!natural)
+      const [encounter, setEncounter] = useState(null)
+      const [ownsEntry, setOwnsEntry] = useState(false)
+      const markerId = useRef(null)
+      if (markerId.current === null) markerId.current = ++encounterSequence
       const alive = useRef(true)
       const requestId = useRef(0)
+      const checkId = useRef(0)
       const latestHead = useRef(null)
       const overlayOpening = useRef(false)
       useEffect(() => { alive.current = true; return () => { alive.current = false; requestId.current++ } }, [])
       useEffect(() => {
-        if (!Number.isSafeInteger(turn) || streaming || typeof ctx.tavernUi.watchTurnState !== 'function') return
+        if (!Number.isSafeInteger(turn) || streaming) return
+        const key = `${gameId}:${turn}`
+        let slot = encounterSlots.get(key)
+        if (!slot) { slot = new Map(); encounterSlots.set(key, slot) }
+        const publish = () => { const first = slot.keys().next().value; for (const [id, setOwner] of slot) setOwner(id === first) }
+        slot.set(markerId.current, setOwnsEntry); publish()
+        return () => { slot.delete(markerId.current); publish(); if (!slot.size) encounterSlots.delete(key) }
+      }, [gameId, turn, streaming])
+      useEffect(() => {
+        if (!ownsEntry || !Number.isSafeInteger(turn) || streaming || typeof ctx.tavernUi.watchTurnState !== 'function') { setEncounter(null); return }
         let active = true
         const check = async head => {
           latestHead.current = head
-          if (!active || head?.turn !== turn || !head.settled || head.generating || head.settling || head.busy) return
+          if (!active) return
+          const token = ++checkId.current
+          if (head?.turn !== turn || !head.settled || head.generating || head.settling || head.busy) { setEncounter(null); return }
           try {
             const state = await storyBattleReady(ctx, gameId, turn, head.textVersion)
             const fight = state?.battle
-            if (!active || !fight || latestHead.current?.turn !== turn || latestHead.current?.textVersion !== head.textVersion || latestHead.current?.generating || latestHead.current?.settling || latestHead.current?.busy) return
-            setReady(true)
-            const key = `${gameId}:${fight.id}:${fight.textVersion}`
-            if (autoEnteredBattles.has(key) || overlayOpening.current) return
-            autoEnteredBattles.add(key)
-            if (autoEnteredBattles.size > 100) autoEnteredBattles.delete(autoEnteredBattles.values().next().value)
-            overlayOpening.current = true; setBusy(true)
-            try { await openBattleOverlay(ctx, gameId, state) }
-            catch (error) { autoEnteredBattles.delete(key); throw error }
-            finally { overlayOpening.current = false; if (alive.current) setBusy(false) }
-          } catch (_) { /* The visible entry button remains usable when the turn is not ready. */ }
+            if (!active || token !== checkId.current || latestHead.current?.turn !== turn || latestHead.current?.textVersion !== head.textVersion || latestHead.current?.generating || latestHead.current?.settling || latestHead.current?.busy) return
+            setEncounter(fight ? state : null)
+          } catch (_) { /* Ordinary prose remains unchanged when no encounter is ready. */ }
         }
         const stop = ctx.tavernUi.watchTurnState(gameId, check)
         return () => { active = false; stop?.() }
-      }, [gameId, turn, streaming])
+      }, [gameId, turn, streaming, ownsEntry])
       const enter = async () => {
-        if (busy || overlayOpening.current) return
+        if (busy || overlayOpening.current || !encounter) return
         const token = ++requestId.current
         overlayOpening.current = true; setBusy(true); setError('')
         try {
           const state = unpack(await routeCall(ctx.tavernUi, 'battle-state', { gameId }))
-          if (!state?.battle) throw new Error('这场战斗当前不可用。')
+          const head = state?.turnState
+          if (!state?.battle || state.battle.id !== encounter.battle.id || state.battle.turn !== turn || state.battle.textVersion !== encounter.battle.textVersion || head?.turn !== turn || head?.textVersion !== encounter.battle.textVersion || state.battle.readOnly || head.generating || head.settling || head.busy || head.settled === false) {
+            setEncounter(null)
+            throw new Error('正文已更新，请使用当前正文的战斗入口。')
+          }
           if (!alive.current || token !== requestId.current) return
           await openBattleOverlay(ctx, gameId, state)
         } catch (e) { if (alive.current && token === requestId.current) setError(e?.message || '无法进入战斗。') }
         finally { overlayOpening.current = false; if (alive.current && token === requestId.current) setBusy(false) }
       }
-      return h('span', { className: 'stg', style: natural ? { display: 'inline', background: 'transparent', color: 'inherit', font: 'inherit' } : { display: 'inline-flex', alignItems: 'center', gap: 6, padding: '3px 7px', border: '1px solid #b8c9e6', borderRadius: 5, background: '#f5f8ff', color: '#193e82' } },
-        natural ? match : '战斗遭遇', ready ? h('button', { style: { minHeight: 26, padding: '2px 7px', color: '#1246b8', borderColor: '#b8c9e6', marginInlineStart: natural ? 4 : 0 }, disabled: busy, onClick: enter }, busy ? '读取中…' : '进入战斗') : null, error ? h('small', { style: { color: '#c63d4d' } }, error) : null)
+      const battle = encounter?.battle
+      const names = array(battle?.enemies).slice(0, 3).map(actor => actor.name).join('、')
+      return h('span', { className: 'stg-story-marker' }, natural ? match : null,
+        ownsEntry && !streaming && battle ? h('span', { className: 'stg stg-encounter', 'data-inline': natural, role: 'group', 'aria-label': '剧情战斗入口' }, h(Style),
+          h('span', { className: 'stg-encounter-copy' }, h('strong', null, battle.outcome ? '战斗已结束' : Number(battle.seq) > 0 ? '战斗进行中' : '战斗已就绪'),
+            h('small', { title: names }, names || '剧情对手')),
+          h('button', { type: 'button', disabled: busy, onClick: enter, title: names ? `对手：${names}` : undefined }, busy ? '正在进入…' : battle.outcome ? '查看战果' : Number(battle.seq) > 0 ? '继续战斗' : '进入战斗')) : null,
+        error ? h('small', { className: 'stg-story-entry-error', role: 'alert' }, error) : null)
     }
 
     return {

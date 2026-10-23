@@ -99,7 +99,8 @@ setInput:async({text})=>{document.querySelector('#input').value=text},submitInpu
 openOverlay:({render,onClose})=>{const box=document.createElement('div');document.body.append(box);const r=ReactDOMClient.createRoot(box);const close=()=>{r.unmount();box.remove();onClose?.()};r.render(render({gameId,close}));return{close}}};
 window.__ModuleLoader__={load:({factory})=>factory(id=>{if(id!=='react')throw Error(id);return React}).apply({tavernUi:ui,effect:()=>{}})};
 let encounterRoot;
-window.addEventListener('load',()=>{ReactDOMClient.createRoot(document.querySelector('#panel')).render(registrations.panel.render({gameId}));document.querySelector('#story').onclick=async()=>{const story=await(await fetch('/story',{method:'POST'})).json();await sync();const status=await(await fetch('/status')).json();registrations.marker.pattern.lastIndex=0;const match=registrations.marker.pattern.exec(story.text)?.[0];encounterRoot ||= ReactDOMClient.createRoot(document.querySelector('#encounter'));encounterRoot.render(match?registrations.marker.render({gameId,turn:status.head.turn,streaming:false,match}):null)};setInterval(sync,500)});
+window.__previewStory=async options=>{const story=await(await fetch('/story',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(options||{})})).json();await sync();const status=await(await fetch('/status')).json();registrations.marker.pattern.lastIndex=0;const nodes=[];let match,last=0;while((match=registrations.marker.pattern.exec(story.text))){nodes.push(story.text.slice(last,match.index));nodes.push(React.createElement(React.Fragment,{key:match.index},registrations.marker.render({gameId,turn:status.head.turn,streaming:false,match:match[0]})));last=match.index+match[0].length}nodes.push(story.text.slice(last));encounterRoot ||= ReactDOMClient.createRoot(document.querySelector('#encounter'));encounterRoot.render(React.createElement('article',{style:{maxWidth:900,margin:'24px auto',padding:20,whiteSpace:'pre-wrap',lineHeight:2,fontSize:16}},...nodes));return story};
+window.addEventListener('load',()=>{ReactDOMClient.createRoot(document.querySelector('#panel')).render(registrations.panel.render({gameId}));document.querySelector('#story').onclick=()=>window.__previewStory();setInterval(sync,500)});
 window.addEventListener('error',e=>{document.querySelector('#error').textContent=e.message});
 `;
 const html = `<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>两个固定包 · 隔离预览</title><style>body{margin:0;background:#f7f7f8;color:#182638;font:14px/1.5 system-ui,sans-serif}header,footer{max-width:950px;margin:auto;padding:16px}header{display:flex;gap:12px;align-items:center}header small{flex:1;color:#566779}#panel{max-width:950px;margin:auto;background:#fff;border:1px solid #e1e7ee;border-radius:8px}button{padding:8px 12px}textarea{box-sizing:border-box;width:100%;min-height:80px;border:1px solid #c9d4e0;border-radius:6px;padding:10px}#error{color:#b92c41}</style><body><header><strong>隔离预览</strong><small>示例数据保存在内存；AI使用本地固定回复，不调用真实模型。</small><button id="story">模拟下一轮剧情遭遇</button></header><main id="panel"></main><div id="encounter"></div><footer><label>预览输入框<textarea id="input" placeholder="只在主动填入续写后出现摘要"></textarea></label><p id="error" role="alert"></p></footer><script src="/react.js"></script><script>${bootstrap}</script><script src="/client.js"></script></body></html>`;
@@ -118,8 +119,10 @@ const server = http.createServer(async (req, res) => {
     }
     if (url.pathname === '/status') return sendJson({ head, revision, modelCalls });
     if (url.pathname === '/story' && req.method === 'POST') {
+      let body = ''; for await (const chunk of req) { body += chunk; if (body.length > 32 * 1024) throw Error('Fixture story is too large'); }
+      const options = body ? JSON.parse(body) : {};
       head = { ...head, turn: head.turn + 1, textVersion: 'preview-v' + (head.turn + 1) };
-      const rawText = '两位演练队友遭遇了拦路挑战者。你与演练挑战者的决斗正式开始。';
+      const rawText = options.text || '两位演练队友遭遇了拦路挑战者。你与演练挑战者的决斗正式开始。\n\n双方摆开阵势，准备迎战。这一场战斗将由你的指令决定。';
       const turn = { ...head, text: rawText, rawText, variables: copy(variables) };
       turns.set(head.turn, turn); revision++;
       // Exercise the real race: settled head is observable before the plugin's queued save.

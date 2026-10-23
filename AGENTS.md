@@ -1,5 +1,9 @@
 # Fixed-pack battle plugin
 
+- 0.1.3 keeps one continuous viewport-sized scene behind the floating dock. Do not reintroduce a solid full-width bottom band. Measure actual dock height to reserve a separate actor stage, preserving its container-query sizing, visible HUDs, captions and camera origin on panel/viewport changes. Disconnect observers on close. Verify both bottom gutters and no actor/HUD collisions, including imported scenes and 3v3.
+
+- 0.1.3 story settlement offers a deduplicated entry only. Open the full-screen scene and start media solely after an explicit entry click; preparation must be cancelable and reject stale battle tickets. Retain compact persistent controls, explicit whole-round confirmation, and queued commands through manual collapse/expand. Header and confirmation stay reachable while long panel contents scroll, without covering the actor stage. Preserve 0.1.2 bare-enemies JSON marker support.
+
 - Public version 0.1.1 adds actor.types (1–2 whitelisted types), per-skill power and element. Keep attack power integer20–140, support0; neutral legacy defaults, bounded matchup0.25–4 and same-type1.2. Persist metadata through generation, imports, MVU and timeline changes. There are60 built-in looks and5 scenes.
 - Release integrity hashes exact bytes. Run packaging after final runtime/assets/README edits and commit update-integrity.json with .gitattributes runtime -text rules. Validate the GitHub tarball before publishing a Release. Updater/installer operations must stage complete trees, retain host guards/local data, and keep five complete non-nested snapshots; incomplete recovery copies do not consume retention slots.
 

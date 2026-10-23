@@ -5,7 +5,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { createInterface } from 'node:readline';
 import path from 'node:path';
 import { DEFAULT_AVATARS } from '../simple/looks.mjs';
-const root=process.cwd(), output=path.join(root,'review','battle-0.1.1');
+const root=process.cwd(), output=path.join(root,'review','fullscreen-0.1.3');
 await mkdir(output,{recursive:true});
 const server=spawn(process.execPath,['tools/browser-dev-server.mjs'],{cwd:root,env:{...process.env,PORT:'0'},windowsHide:true,stdio:['ignore','pipe','pipe']});
 let origin='';
@@ -54,14 +54,15 @@ try{
  const maxOnlyHost=await setup.evaluate(el=>({client:el.clientHeight,parent:el.parentElement.clientHeight,full:el.scrollHeight}));
  if(maxOnlyHost.client>maxOnlyHost.parent+1)throw Error('max-height-only host clips the plugin scroll area: '+JSON.stringify(maxOnlyHost));
  await page.evaluate(()=>{const panel=document.querySelector('#panel');panel.style.height='480px';panel.style.maxHeight='none'});
+ await page.getByLabel('内置战斗场景',{exact:true}).selectOption('forest-clearing');
  await setup.evaluate(el=>{el.querySelectorAll('details').forEach(d=>d.open=false);el.scrollTop=0});
  const battleOpenStarted=Date.now();
  await page.getByRole('button',{name:'本地演示',exact:true}).click();
  await page.locator('.stg-figure').first().waitFor();
  const paletteReadyMs=Date.now()-battleOpenStarted;
  const assertOverlayWidth=async label=>{
-  const geometry=await page.evaluate(()=>{const overlay=document.querySelector('.stg-overlay'),battle=document.querySelector('.stg-battle'),scene=document.querySelector('.stg-scene'),box=el=>{const r=el.getBoundingClientRect();return{left:r.left,right:r.right,width:r.width}};return{viewport:innerWidth,overlay:box(overlay),battle:box(battle),scene:box(scene)}});
-  if(geometry.overlay.left>1||geometry.overlay.right<geometry.viewport-1||geometry.battle.width<geometry.viewport-1||geometry.scene.width<geometry.viewport-1)throw Error(label+' battle overlay is narrower than the viewport: '+JSON.stringify(geometry));
+  const geometry=await page.evaluate(()=>{const overlay=document.querySelector('.stg-overlay'),battle=document.querySelector('.stg-battle'),scene=document.querySelector('.stg-scene'),box=el=>{const r=el.getBoundingClientRect();return{left:r.left,right:r.right,width:r.width,height:r.height,top:r.top,bottom:r.bottom}};return{viewport:innerWidth,viewportHeight:innerHeight,overlay:box(overlay),battle:box(battle),scene:box(scene)}});
+  if(geometry.scene.height<geometry.viewportHeight-1||geometry.scene.top>1||geometry.overlay.left>1||geometry.overlay.right<geometry.viewport-1||geometry.battle.width<geometry.viewport-1||geometry.scene.width<geometry.viewport-1)throw Error(label+' scene does not cover the entire viewport: '+JSON.stringify(geometry));
   return geometry;
  };
  const fullWidthBattle=await assertOverlayWidth('initial');
@@ -202,7 +203,7 @@ try{
  await page.getByRole('button',{name:'本地演示',exact:true}).click();
  await page.locator('.stg-rig-viewport svg').waitFor();
  await page.getByRole('button',{name:'关闭战斗',exact:true}).click();
- const pack={schemaVersion:1,kind:'dsh-battle-pack',id:'qa-party',name:'隔离六人包',basePack:'human',party:Array.from({length:6},(_,i)=>({name:'演练队员'+(i+1),gender:i%2?'female':'male',hp:100,maxHp:130,attack:18,defense:5,speed:40+i,skills:['直拳','踢击','护盾']}))};
+ const pack={schemaVersion:1,kind:'dsh-battle-pack',id:'qa-party',name:'隔离六人包',basePack:'human',items:[{id:'healing-potion',count:2},{id:'resource-potion',count:1},{id:'cleanse',count:1}],party:Array.from({length:6},(_,i)=>({name:'演练队员'+(i+1),gender:i%2?'female':'male',hp:100,maxHp:130,attack:18,defense:5,speed:40+i,skills:['直拳','踢击','护盾']}))};
  await page.getByText('导入资源',{exact:true}).click();
  await page.locator('input[type=file][accept*="application/json"]').first().setInputFiles({name:'qa-pack.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(pack))});
  await page.waitForFunction(()=>document.querySelector('.stg-controls select')?.value==='qa-party');
@@ -218,6 +219,25 @@ try{
  await page.waitForTimeout(100);
  const mobileSixDockGeometry=await assertDockGeometry('mobile three-per-side');
  await page.screenshot({path:path.join(output,'six-roster-three-field.png')});
+ const scrollablePanelChecks=[];
+ for(const viewport of [{width:320,height:780},{width:780,height:390},{width:1440,height:600}]){
+  await page.setViewportSize(viewport);
+  for(const command of ['背包','换人','战斗']){
+   await page.getByRole('button',{name:command,exact:true}).click();
+   const layout=await page.evaluate(()=>{
+    const dock=document.querySelector('.stg-control-dock').getBoundingClientRect(),panel=document.querySelector('.stg-commandpanel'),confirm=document.querySelector('.stg-confirm-round').getBoundingClientRect(),header=document.querySelector('.stg-dock-header').getBoundingClientRect();
+    return {width:innerWidth,height:innerHeight,actorStageBottom:document.querySelector('.stg-actor-stage').getBoundingClientRect().bottom,dockTop:dock.top,dockBottom:dock.bottom,confirmBottom:confirm.bottom,headerTop:header.top,panelHeight:panel.clientHeight,panelFull:panel.scrollHeight,items:document.querySelectorAll('.stg-inventory').length};
+   });
+   if(layout.actorStageBottom>layout.dockTop-10||layout.confirmBottom>layout.dockBottom+1||layout.headerTop<0||layout.panelHeight<40)throw Error('bounded panel hides its content or confirmation: '+JSON.stringify({command,layout}));
+   if(command==='背包'){
+    if(layout.items!==3)throw Error('three-item inventory fixture is missing');
+    await page.locator('.stg-commandpanel').evaluate(el=>{el.scrollTop=el.scrollHeight});
+    if(layout.panelFull>layout.panelHeight && await page.locator('.stg-commandpanel').evaluate(el=>el.scrollTop)<=0)throw Error('long backpack cannot scroll');
+   }
+   scrollablePanelChecks.push({command,...layout});
+  }
+ }
+
  await page.setViewportSize({width:1440,height:900});
  await page.getByRole('button',{name:'背包',exact:true}).click();
  await page.getByRole('button',{name:'换人',exact:true}).click();
@@ -229,13 +249,16 @@ try{
  await page.getByRole('button',{name:'关闭战斗',exact:true}).click();
  const storyTriggerStarted=Date.now();
  await page.getByRole('button',{name:'模拟下一轮剧情遭遇',exact:true}).click();
- await page.getByText('决斗',{exact:true}).waitFor();
+ await page.locator('.stg-story-marker').filter({hasText:'决斗'}).first().waitFor();
  const naturalStoryText=await page.locator('#encounter').innerText();
  if(!naturalStoryText.includes('决斗')||/<dsh_battle>|battle###/.test(naturalStoryText))throw Error('natural story trigger did not render from visible prose');
- await page.locator('.stg-overlay').waitFor();
+ const storyEntry=page.getByRole('group',{name:'剧情战斗入口'});
+ await storyEntry.getByRole('button',{name:'进入战斗',exact:true}).waitFor();
+ if(await page.locator('.stg-overlay').count())throw Error('settled story opened battle without player consent');
  const naturalStoryReadyMs=Date.now()-storyTriggerStarted;
- if(naturalStoryReadyMs<200)throw Error('natural story trigger opened before the delayed battle save settled: '+naturalStoryReadyMs);
- await page.getByText('进入回合制战斗',{exact:true}).waitFor();
+ if(naturalStoryReadyMs<200)throw Error('story entry appeared before the delayed battle save settled: '+naturalStoryReadyMs);
+ await storyEntry.getByRole('button',{name:'进入战斗',exact:true}).click();
+ await page.locator('.stg-figure').first().waitFor();
  await page.screenshot({path:path.join(output,'story-to-battle.png')});
  const avatarAssets=Object.entries(DEFAULT_AVATARS).map(([id,avatar])=>({id,src:'/assets/'+avatar.src}));
  const decoded=await page.evaluate(async avatars=>Promise.all(avatars.map(async avatar=>{const img=new Image();img.src=avatar.src;try{await img.decode()}catch(_){}return{id:avatar.id,w:img.naturalWidth,h:img.naturalHeight}})),avatarAssets);
@@ -268,6 +291,6 @@ try{
  if(mobileScroll.after<=50||mobileScroll.fullWidth>mobileScroll.width+1)throw Error('narrow panel scroll/width failed: '+JSON.stringify(mobileScroll));
  await page.screenshot({path:path.join(output,'mobile-panel-scroll.png')});
  if(errors.length)throw Error(errors.join('\n'));
- await writeFile(path.join(output,'browser-result.json'),JSON.stringify({fixtureOnly:true,origin,fullWidthBattle,paletteReadyOnFirstPaint:paletteOnFirstPaint,paletteReadyMs,starterAvatars,sixPalettesOnFirstPaint,sixPaletteReadyMs,constrainedPanelScroll:{...scrollBefore,after:scrollAfter},maxOnlyHost,mobileScroll,mobileCommands,mobileSpeedGap,desktopDockGeometry,mobileDuelDockGeometry,mobileSixDockGeometry,mobileDockGeometry,smoothIdle:true,idlePoseStable:true,hudAttached:true,speeds:[1,2,3,10],speedNearCommands,commandSizes,skillPanelVisibleAndPersistent:true,cameraMotion,defaultActors:2,defaultAvatars:decoded,defaultPaletteFilters,defaultAvatarCounts:{human:decoded.filter(image=>DEFAULT_AVATARS[image.id].category==='human').length,animal:decoded.filter(image=>DEFAULT_AVATARS[image.id].category==='animal').length},pendingAtlasesAllowed:false,actualCultivatorBundleImported:true,importedAppearanceKeepsOriginalColors:true,importedAttackPoseChanges:true,importedSceneRendered:true,appearanceAndSceneSurviveReload:true,roster:6,fieldPerSide:3,commands:['战斗','背包','换人','逃离'],normalMs,fastMs,generationSavesPartyAndBag:true,perActorRigAnimates:true,perActorResourcesSurviveReload:true,naturalStoryTrigger:true,naturalStoryReadyMs,storyAutoEntry:true,pageErrors:errors},null,2));
+ await writeFile(path.join(output,'browser-result.json'),JSON.stringify({fixtureOnly:true,origin,fullWidthBattle,paletteReadyOnFirstPaint:paletteOnFirstPaint,paletteReadyMs,starterAvatars,sixPalettesOnFirstPaint,sixPaletteReadyMs,constrainedPanelScroll:{...scrollBefore,after:scrollAfter},maxOnlyHost,mobileScroll,mobileCommands,mobileSpeedGap,desktopDockGeometry,mobileDuelDockGeometry,mobileSixDockGeometry,scrollablePanelChecks,mobileDockGeometry,smoothIdle:true,idlePoseStable:true,hudAttached:true,speeds:[1,2,3,10],speedNearCommands,commandSizes,skillPanelVisibleAndPersistent:true,cameraMotion,defaultActors:2,defaultAvatars:decoded,defaultPaletteFilters,defaultAvatarCounts:{human:decoded.filter(image=>DEFAULT_AVATARS[image.id].category==='human').length,animal:decoded.filter(image=>DEFAULT_AVATARS[image.id].category==='animal').length},pendingAtlasesAllowed:false,actualCultivatorBundleImported:true,importedAppearanceKeepsOriginalColors:true,importedAttackPoseChanges:true,importedSceneRendered:true,appearanceAndSceneSurviveReload:true,roster:6,fieldPerSide:3,commands:['战斗','背包','换人','逃离'],normalMs,fastMs,generationSavesPartyAndBag:true,perActorRigAnimates:true,perActorResourcesSurviveReload:true,naturalStoryTrigger:true,naturalStoryReadyMs,storyEntryRequiresClick:true,pageErrors:errors},null,2));
  console.log('BROWSER_PASS '+output);
 }finally{await browser?.close();server.kill();}
