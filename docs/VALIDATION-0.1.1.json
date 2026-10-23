@@ -1,0 +1,99 @@
+{
+  "version": "0.1.1",
+  "automatedTests": {
+    "passed": 212,
+    "failed": 0
+  },
+  "staticCheck": {
+    "runtimeModules": 12,
+    "assetEntries": 71
+  },
+  "palette": {
+    "images": 62,
+    "seedsPerImage": 6,
+    "skinProbe": {
+      "samples": 8,
+      "seeds": 4,
+      "allPixelsPreserved": true
+    },
+    "varietyProbe": {
+      "seeds": 64,
+      "distinctColors": 64,
+      "hueBinsOf12": 12,
+      "maximumSaturation": 0.9262672811059908
+    },
+    "hairProbe": {
+      "seeds": 16,
+      "hairColors": 16,
+      "clothingColors": 16,
+      "independentPairs": 16,
+      "facePreserved": true
+    },
+    "passed": true
+  },
+  "browser": {
+    "fixtureOnly": true,
+    "pageErrors": [],
+    "viewports": [
+      {
+        "width": 1440,
+        "height": 900
+      },
+      {
+        "width": 320,
+        "height": 780
+      },
+      {
+        "width": 390,
+        "height": 780
+      }
+    ],
+    "initialPalettesReady": true,
+    "skillSelectionDoesNotAct": true,
+    "oneConfirmationOneRound": true,
+    "wholeRoundMsAt1x": 10111,
+    "wholeRoundMsAt10x": 865,
+    "appearanceAndScenePersist": true,
+    "mobileThreePerSidePassed": true,
+    "singleGenerationModel": true,
+    "threeAnimalEnemies": [
+      {
+        "name": "灰狼",
+        "avatarId": "silver-wolf"
+      },
+      {
+        "name": "赤狐",
+        "avatarId": "ember-fox"
+      },
+      {
+        "name": "乌鸦",
+        "avatarId": "raven-scout"
+      }
+    ],
+    "onlyCombatItems": true,
+    "itemDescriptionVisible": true,
+    "recapInComposer": true,
+    "musicAutoplays": true,
+    "blockedMusicGestureRecovery": true,
+    "muteRespected": true,
+    "noDuplicateAudio": true,
+    "audioStopsOnClose": true
+  },
+  "githubArchive": {
+    "verifiedCommit": "addef5f5be179c259087374f6b52d0863a1de94e",
+    "archiveBytes": 191660532,
+    "runtimeFilesVerified": 88,
+    "upgradeFrom": "0.1.0",
+    "upgradeTo": "0.1.1",
+    "rollbackTo": "0.1.0",
+    "upgradeBytesExact": true,
+    "originalBytesRestored": true,
+    "hostGuardAndLocalDataPreserved": true
+  },
+  "limits": [
+    "No real provider/model invocation.",
+    "No actual player session edited or DSH restart.",
+    "Browser tests use isolated local Tavern fixtures.",
+    "Archive upgrade and rollback use a temporary plugin directory."
+  ]
+}
