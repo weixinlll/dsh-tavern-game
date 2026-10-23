@@ -10,7 +10,7 @@ import { gunzipSync } from 'node:zlib';
 const OWNER = 'weixinlll', REPO = 'dsh-tavern-game';
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const MAX_BYTES = 400 * 1024 * 1024, MAX_FILE = 32 * 1024 * 1024, MAX_FILES = 4000;
-const TIMEOUT = 180000;
+const TIMEOUT = 600000;
 const INTEGRITY = 'update-integrity.json';
 const ALLOWED_HOSTS = new Set(['api.github.com', 'codeload.github.com', 'github.com', 'objects.githubusercontent.com']);
 const PROTECTED = /^(?:\.tavern-[^/]*|\.update-backup|node_modules|dist|\.git)(?:$|\/)|\.bak-|\.orig$/i;
@@ -196,7 +196,9 @@ export function createUpdater({ root = ROOT, io = fs, fetch = request } = {}) {
     return { current, latest, updateAvailable: newer, repo: REPO_URL,
       publishedAt: typeof release.published_at === 'string' ? release.published_at : '',
       notes: typeof release.body === 'string' ? release.body.slice(0, 2000) : '',
-      tarball: newer ? (release.tarball_url || `https://codeload.github.com/${OWNER}/${REPO}/tar.gz/${release.tag_name}`) : '' };
+      // The API's legacy archive redirect can stall on large art packages.
+      // Use the canonical, fixed-owner archive endpoint for the validated tag.
+      tarball: newer ? `https://codeload.github.com/${OWNER}/${REPO}/tar.gz/refs/tags/${encodeURIComponent(release.tag_name)}` : '' };
   }
   async function locked(operation) {
     await io.mkdir(parent, { recursive: true });

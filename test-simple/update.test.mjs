@@ -291,3 +291,11 @@ test('不完整恢复快照不占用五份完整备份的保留名额', async t 
   assert(!retained.includes(complete[0]), 'only the oldest complete backup is pruned');
   for (const id of [...complete.slice(1), ...incomplete]) assert(retained.includes(id), id);
 });
+
+test('大资源包从固定仓库标签的codeload直链下载，避开legacy中转', async t => {
+  const { updater } = await fixture(t, { fetch: async () => ({ tag_name: 'v0.1.1', tarball_url: 'https://api.github.com/legacy-slow-archive' }) });
+  const info = await updater.checkForUpdate();
+  assert.equal(info.latest, '0.1.1');
+  assert.equal(info.updateAvailable, true);
+  assert.equal(info.tarball, 'https://codeload.github.com/weixinlll/dsh-tavern-game/tar.gz/refs/tags/v0.1.1');
+});

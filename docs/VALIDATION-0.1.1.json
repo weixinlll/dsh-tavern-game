@@ -1,7 +1,7 @@
 {
   "version": "0.1.1",
   "automatedTests": {
-    "passed": 212,
+    "passed": 213,
     "failed": 0
   },
   "staticCheck": {
@@ -88,7 +88,8 @@
     "rollbackTo": "0.1.0",
     "upgradeBytesExact": true,
     "originalBytesRestored": true,
-    "hostGuardAndLocalDataPreserved": true
+    "hostGuardAndLocalDataPreserved": true,
+    "canonicalDownloadFix": "Use the fixed repository release tag codeload URL; legacy API redirect timed out in the actual transport check."
   },
   "limits": [
     "No real provider/model invocation.",
