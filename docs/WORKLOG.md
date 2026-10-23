@@ -124,3 +124,5 @@ OpenCode 缺少 `x-opencode-session` 的原因是直接 `prepareCall().stream()`
 GitHub实际下载验收完成：提交addef5f的源包191,660,532字节，88个运行文件SHA256与清单全部相符；隔离旧版0.1.0升级0.1.1、逐字节核对、回滚0.1.0全部通过，77个旧运行文件与宿主入口/本地哨兵数据保持一致。API中转下载曾超时；codeload直链实际下载11.94秒。汇总证据docs/VALIDATION-0.1.1.json，详细本机报告review/release-network-test/result.json。未触碰实际安装。
 
 正式更新器原生下载复查发现API legacy归档中转超时，临时目录保持旧版且锁已释放。改为固定仓库版本标签的codeload直链、十分钟有界下载；新增契约测试后213/213通过。0.1.1发布过程内补入此修正；旧0.1.0遇到超时可通过Tavern插件管理或ZIP先更新一次。
+
+下载根因进一步定位为原生HTTPS忽略已配置的HTTP(S)代理：直连20秒仅约1.7MB，独立代理Agent完整下载约11.31秒。更新器仅为自己的请求建立代理Agent，遵循NO_PROXY、不改宿主全局网络或TLS校验。最终原生更新器真实读取公开Release、下载整包、升级和回滚总计17.337秒，宿主入口哨兵保持，报告review/release-network-test/production-direct-download.json。213项测试及入口/资源检查通过。

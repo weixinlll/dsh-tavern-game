@@ -10,8 +10,8 @@
     },
     {
       "path": "README.md",
-      "size": 9491,
-      "sha256": "efc1f625ce6dc32fc383f878a02239134968877c8fcaa5532579a37ddbb85a37"
+      "size": 9566,
+      "sha256": "0437269c1c86cb913d53691f0d155dbd570c1425c258eb169d062db5ca4afd0b"
     },
     {
       "path": "assets/human/audio/attack.wav",
@@ -435,8 +435,8 @@
     },
     {
       "path": "simple/update.mjs",
-      "size": 22465,
-      "sha256": "847d1614425461e76d688ba28d69c4380963b0385f600137c5b854def0a63dcc"
+      "size": 22839,
+      "sha256": "90990e66cad2099a32f48633d1bb503cbcbdc13099978a55828e9dd9cf13eb8c"
     }
   ]
 }

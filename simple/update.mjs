@@ -3,7 +3,7 @@
 import * as fs from 'node:fs/promises';
 import { dirname, join, resolve, sep, posix } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { get } from 'node:https';
+import { get, Agent } from 'node:https';
 import { createHash, randomUUID } from 'node:crypto';
 import { gunzipSync } from 'node:zlib';
 
@@ -96,7 +96,12 @@ function request(url, { asJson = false, limit = MAX_BYTES, redirects = 0 } = {})
     if (parsed.protocol !== 'https:' || !ALLOWED_HOSTS.has(parsed.hostname) || parsed.username || parsed.password || (parsed.port && parsed.port !== '443') || redirects > 5) {
       reject(new Error('更新地址不在允许范围内或重定向过多。')); return;
     }
-    const req = get(parsed, { headers: { 'user-agent': 'dsh-tavern-game-updater', accept: asJson ? 'application/vnd.github+json' : '*/*' } }, res => {
+    // Inherit configured HTTP(S)/NO_PROXY only for this updater. Never replace
+    // the host's global agent or change certificate verification.
+    let agent;
+    try { agent = new Agent({ proxyEnv: process.env }); }
+    catch { reject(new Error('更新代理配置无法使用，请检查宿主的HTTP(S)代理设置。')); return; }
+    const req = get(parsed, { agent, headers: { 'user-agent': 'dsh-tavern-game-updater', accept: asJson ? 'application/vnd.github+json' : '*/*' } }, res => {
       const status = res.statusCode || 0;
       if ([301, 302, 303, 307, 308].includes(status) && res.headers.location) {
         res.resume(); request(new URL(res.headers.location, parsed).href, { asJson, limit, redirects: redirects + 1 }).then(resolveRequest, reject); return;
@@ -120,7 +125,7 @@ function request(url, { asJson = false, limit = MAX_BYTES, redirects = 0 } = {})
       });
     });
     const timer = setTimeout(() => req.destroy(new Error('更新请求超时。')), TIMEOUT);
-    req.on('close', () => clearTimeout(timer));
+    req.on('close', () => { clearTimeout(timer); agent.destroy(); });
     req.setTimeout(TIMEOUT, () => req.destroy(new Error('更新请求超时。')));
     req.on('error', reject);
   });

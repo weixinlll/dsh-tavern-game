@@ -89,7 +89,16 @@
     "upgradeBytesExact": true,
     "originalBytesRestored": true,
     "hostGuardAndLocalDataPreserved": true,
-    "canonicalDownloadFix": "Use the fixed repository release tag codeload URL; legacy API redirect timed out in the actual transport check."
+    "canonicalDownloadFix": "Use the fixed repository release tag codeload URL; legacy API redirect timed out in the actual transport check.",
+    "actualUpdaterTransport": {
+      "passed": true,
+      "configuredProxyHonored": true,
+      "download": "https://codeload.github.com/weixinlll/dsh-tavern-game/tar.gz/refs/tags/v0.1.1",
+      "upgradeTo": "0.1.1",
+      "rollbackTo": "0.1.0",
+      "elapsedMs": 17337,
+      "hostGuardPreserved": true
+    }
   },
   "limits": [
     "No real provider/model invocation.",
