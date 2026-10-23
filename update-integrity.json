@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "name": "dsh-tavern-game",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "files": [
     {
       "path": "LICENSE",
@@ -386,7 +386,7 @@
     {
       "path": "package.json",
       "size": 752,
-      "sha256": "5d9166ccb599ec78643a7fb690160257097bcbc03ae348422c52cdc578687d24"
+      "sha256": "0a5412c0792785e1a08b79a2ffaaeac1c88a73b6db41eff0ac5af132abb6a4f0"
     },
     {
       "path": "simple/catalog.mjs",
@@ -430,13 +430,13 @@
     },
     {
       "path": "simple/plugin.mjs",
-      "size": 81425,
-      "sha256": "d980fea2116cd3327fdf6545cf7d7a2dbf3bd8017f3e97baa6eff901e7dd8dac"
+      "size": 81882,
+      "sha256": "377eb75d46e6ad6034d5c80c25b8a486118c68eb51b5e08b75d0abcd924d31f4"
     },
     {
       "path": "simple/update.mjs",
-      "size": 22839,
-      "sha256": "90990e66cad2099a32f48633d1bb503cbcbdc13099978a55828e9dd9cf13eb8c"
+      "size": 26079,
+      "sha256": "07c73e515f0b95d190b9d7a69717f11b11459f9a9e855bceebd857b7e8a3f901"
     }
   ]
 }

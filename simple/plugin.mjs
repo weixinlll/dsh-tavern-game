@@ -6,7 +6,7 @@ import { chooseEnemyPlans, modelOptions } from './opponent-ai.mjs';
 import { readSources, partyPrompt, parsePartyResult, encounterFromText, explicitBattleRequest, manualEncounterLines, manualEncounterIntent, readEnemyContext, extractMvuParty, extractMvuItems, extractMvuBag, enrichmentPrompt, generationSourceOptions, readGenerationSources } from './context.mjs';
 import { generationPrompt, generationEffectsPrompt, parseGeneratedSkills, requestGeneration, parseGenerationResult, preserveMvuNumbers, generatedInventory, helperTextMessage } from './generation.mjs';
 import { DEFAULT_AVATARS, avatarSelectionPrompt, chooseDefaultAvatar, chooseDefaultHue, chooseDefaultPaletteSeed, legacyDefaultPaletteSeed, validDefaultAvatarId, validDefaultHue, validDefaultPaletteSeed } from './looks.mjs';
-import { checkForUpdate, installUpdate, listBackups, rollbackUpdate, localVersion, REPO_URL } from './update.mjs';
+import { checkForUpdate, installUpdate, installUpdateQuick, listBackups, rollbackUpdate, localVersion, REPO_URL } from './update.mjs';
 import { ELEMENTS, ELEMENT_IDS, TYPE_CHART, validElement, validTypes, normalizeTypes } from './elements.mjs';
 
 export const name = 'dsh-tavern-game';
@@ -372,6 +372,12 @@ export function apply(ctx) {
   register('check-update', () => checkForUpdate(), false);
   register('list-update-backups', async () => ({ backups: await listBackups() }), false);
   register('install-update', async (gameId, args) => {
+    if (updating) throw failure('UPDATE_BUSY', '更新正在进行，请稍候。');
+    updating = installUpdateQuick({ expected: typeof args?.expected === 'string' ? args.expected.slice(0, 40) : '' });
+    try { return await updating; } finally { updating = null; }
+  }, false);
+  // 完整更新：连图片资源一起换，包很大，只在快速通道不可用时用。
+  register('install-update-full', async (gameId, args) => {
     if (updating) throw failure('UPDATE_BUSY', '更新正在进行，请稍候。');
     updating = installUpdate({ expected: typeof args?.expected === 'string' ? args.expected.slice(0, 40) : '' });
     try { return await updating; } finally { updating = null; }

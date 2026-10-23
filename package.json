@@ -1,6 +1,6 @@
 {
   "name": "dsh-tavern-game",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "为 DSH Tavern 添加剧情驱动的回合制战斗、玩法包、技能、背包和动作立绘",
   "type": "module",
   "main": "index.mjs",

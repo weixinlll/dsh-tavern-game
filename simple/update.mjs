@@ -315,6 +315,49 @@ export function createUpdater({ root = ROOT, io = fs, fetch = request } = {}) {
       return publish(validateRelease(parseTar(tar), info.latest), info.current, info.latest);
     });
   }
+  // 完整包 160MB 以上，放图集时下载会卡死；快速通道只取代码文件，走 contents 接口。
+  async function fetchContents(path, ref) {
+    const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${path.split('/').map(encodeURIComponent).join('/')}?ref=${encodeURIComponent(ref)}`;
+    const value = await fetch(url, { asJson: true, limit: 8 * 1024 * 1024 });
+    if (!value || value.encoding !== 'base64' || typeof value.content !== 'string') throw new Error(`无法读取 ${path}。`);
+    return Buffer.from(value.content.replace(/\s+/g, ''), 'base64');
+  }
+  async function installUpdateQuick({ expected = '' } = {}) {
+    return locked(async () => {
+      const info = await checkForUpdate();
+      if (!info.updateAvailable) return { updated: false, current: info.current, latest: info.latest || info.current, notice: '已经是最新版本。', quick: true };
+      if (expected && info.latest !== expected) throw new Error('版本在准备过程中变化了，请重新检查更新。');
+      const ref = `v${info.latest}`;
+      let manifest;
+      try { manifest = JSON.parse((await fetchContents(INTEGRITY, ref)).toString('utf8')); }
+      catch { throw new Error('上游缺少完整性清单，只能使用完整更新。'); }
+      if (manifest?.schemaVersion !== 1 || manifest.version !== info.latest || !Array.isArray(manifest.files)) throw new Error('上游完整性清单无效。');
+      const targets = manifest.files.filter(entry => entry && typeof entry.path === 'string'
+        && /^[a-f0-9]{64}$/.test(entry.sha256 || '') && runtimePath(entry.path)
+        && entry.path !== INTEGRITY && !entry.path.startsWith('assets/'));
+      if (!targets.length) throw new Error('完整性清单里没有可更新的代码文件。');
+      const files = new Map();
+      for (const entry of targets) {
+        const data = await fetchContents(entry.path, ref);
+        if (data.length !== entry.size || sha256(data) !== entry.sha256) throw new Error(`更新文件校验失败：${entry.path}`);
+        files.set(entry.path, data);
+      }
+      const integrity = await fetchContents(INTEGRITY, ref);
+      files.set(INTEGRITY, integrity);
+      // 代码先全部取回并校验，再落盘；旧文件逐个备份，方便手动恢复。
+      const id = new Date().toISOString().replace(/\D/g, '').slice(0, 17) + '-' + randomUUID();
+      const backup = inside('.update-backup/quick-' + id);
+      let backedUp = 0;
+      for (const [path, data] of files) {
+        const target = inside(path), previous = await io.readFile(target).catch(() => null);
+        if (previous) { await io.mkdir(dirname(join(backup, path)), { recursive: true }); await io.writeFile(join(backup, path), previous); backedUp++; }
+        await io.mkdir(dirname(target), { recursive: true });
+        await io.writeFile(target, data);
+      }
+      for (const [path, data] of files) if (sha256(await io.readFile(inside(path))) !== sha256(data)) throw new Error(`写入校验失败：${path}`);
+      return { updated: true, from: info.current, to: info.latest, written: files.size, backedUp, quick: true, restart: true, backup: '.update-backup/quick-' + id };
+    });
+  }
   async function rollbackUpdate({ backup = '' } = {}) {
     return locked(async () => {
       const backups = await listBackups(), id = backup || backups[0];
@@ -347,8 +390,8 @@ export function createUpdater({ root = ROOT, io = fs, fetch = request } = {}) {
       return publish(validateRelease(entries, expected), await localVersion(), expected);
     });
   }
-  return { localVersion, checkForUpdate, installUpdate, listBackups, rollbackUpdate, installDirectory };
+  return { localVersion, checkForUpdate, installUpdate, installUpdateQuick, listBackups, rollbackUpdate, installDirectory };
 }
 
 const updater = createUpdater();
-export const { localVersion, checkForUpdate, installUpdate, listBackups, rollbackUpdate } = updater;
+export const { localVersion, checkForUpdate, installUpdate, installUpdateQuick, listBackups, rollbackUpdate } = updater;

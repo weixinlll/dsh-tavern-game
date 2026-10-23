@@ -72,7 +72,7 @@ async function rejectsCode(promise, code) {
 test('public mount is passive and registers fixed-pack and import routes', async () => {
   const host = makeHost();
   assert.deepEqual([...host.routes.keys()].sort(), [
-    'battle-act', 'battle-state', 'check-update', 'demo-start', 'design-actor', 'fill-party', 'generate-party', 'import-pack', 'install-update', 'list-update-backups', 'rollback-update', 'manual-start', 'model-options', 'save-party', 'select-options', 'select-pack', 'state', 'summary',
+    'battle-act', 'battle-state', 'check-update', 'demo-start', 'design-actor', 'fill-party', 'generate-party', 'import-pack', 'install-update', 'install-update-full', 'list-update-backups', 'rollback-update', 'manual-start', 'model-options', 'save-party', 'select-options', 'select-pack', 'state', 'summary',
   ].map(route => `dsh-tavern-game/${route}`).sort());
   assert.equal(host.calls.saves.length, 0);
   assert.equal(host.calls.tasks.length, 0);
